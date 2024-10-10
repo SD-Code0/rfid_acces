@@ -16,11 +16,7 @@ CORS(app)
 
 user_data = None
 
-def verify_challange(challange_raw, challange_encrypted):
-    fernet_key = open("challange_fernet_key.pem", "rb").read()
-    fernet = Fernet(fernet_key)
-    challange_decrypted = fernet.decrypt(challange_encrypted.encode()).decode()
-    return challange_raw == challange_decrypted
+
 
 @app.route('/')
 def home():
