@@ -9,7 +9,7 @@ from flask import Flask
 import threading
 from db_manager import create_tables, add_user, delete_user, get_users, get_access_logs, delete_all_logs
 import web_ui
-from access_conroll import access_door,read_rfid
+from access_conroll import access_door
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from espdata import start_tcp_server
@@ -21,8 +21,6 @@ def run_webui():
 webui_thread = threading.Thread(target=run_webui)
 webui_thread.daemon = True
 webui_thread.start()
-rfid_thread = threading.Thread(target=read_rfid, daemon=True)
-rfid_thread.start()
 tcp_thread = threading.Thread(target=start_tcp_server, daemon=True)
 tcp_thread.start()
 

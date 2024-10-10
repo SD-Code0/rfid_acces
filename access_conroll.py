@@ -11,19 +11,6 @@ import base64
 import os
 import threading
 
-def read_rfid():
-    try:
-        while True:
-            #rfid_uid_raw, text = reader.read()
-            #rfid_uid = str(rfid_uid)  
-            #access_door(rfid_uid)
-            time.sleep(1)
-    except KeyboardInterrupt:
-        print("RFID-Leser gestoppt")
-    finally:
-       # GPIO.cleanup()
-        pass
-
 def default_screen():
     time.sleep(10)
     default_image_path = os.path.join(os.path.dirname(__file__), 'default.png')
