@@ -50,9 +50,13 @@ def add_user(username, rfid_uid, role, image_path=None):
         fernet_key = Fernet.generate_key()
         
         fernet = Fernet(fernet_key)
+        
+        global_fernet = Fernet(open("fernet_key.pem", "rb").read())
+        
         with open(f"{username}_fernet_key.pem", "wb") as f:
             f.write(fernet_key)
-        encrypted_fernetkey = fernet.encrypt(fernet_key)
+            
+        encrypted_fernetkey = global_fernet.encrypt(fernet_key)
         with open(f"{username}encrypted__fernet_key.pem", "wb") as f:
             f.write(encrypted_fernetkey)
         

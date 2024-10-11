@@ -68,9 +68,9 @@ while True:
         logs = get_access_logs(date)
         if logs:
             for log in logs:
-                log_id, user_id, username, role, access_time = log
+                log_id, user_id, rfid_uid, access_time = log
                 access_time = datetime.fromisoformat(access_time).replace(tzinfo=ZoneInfo('UTC')).astimezone(tz)
-                print(f"Log ID: {log_id}, UserID: {user_id}, Benutzer: {username}, Rolle: {role}, Zugriff um: {access_time.strftime('%Y-%m-%d %H:%M:%S %Z')}")
+                print(f"Log ID: {log_id}, UserID: {user_id}, Rfid: {rfid_uid} um: {access_time.strftime('%Y-%m-%d %H:%M:%S %Z')}")
     elif choice == "6":
         delete = input("Möchtest du wirklich alle Logs löschen? (y/n): ")
         if delete.lower() == "y":
