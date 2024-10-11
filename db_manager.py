@@ -73,6 +73,7 @@ def add_user(username, rfid_uid, role, image_path=None):
         cursor.execute("INSERT INTO users (username, rfid_uid, role, image) VALUES (?, ?, ?, ?)",
                     (encrypted_username, rfid_uid, encrypted_role, encrypted_image))
         conn.commit()
+        return "success"
     except sqlite3.IntegrityError:
         print("RFID ist bereits vorhanden.")
     except FileNotFoundError:
@@ -80,7 +81,7 @@ def add_user(username, rfid_uid, role, image_path=None):
     finally:
         conn.close()
 
-def delete_user(rfid_uid):
+def delete_user_by_rfid(rfid_uid):
     conn, cursor = get_db_connection()
     cursor.execute("DELETE FROM users WHERE rfid_uid = ?", (rfid_uid,))
     conn.commit()

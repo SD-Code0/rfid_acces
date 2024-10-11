@@ -7,8 +7,9 @@
 
 from flask import Flask
 import threading
-from db_manager import create_tables, add_user, delete_user, get_users, get_access_logs, delete_all_logs
+from db_manager import create_tables, add_user, get_users, get_access_logs, delete_all_logs
 import web_ui
+import ui_server
 from web_ui import mainpage
 from access_conroll import access_door
 from datetime import datetime
@@ -19,13 +20,19 @@ create_tables()
 
 
 def run_webui():
-    web_ui.socketio.run(web_ui.app,host='172.20.10.6', port=5000, debug=False)
+    web_ui.socketio.run(web_ui.app,host='0.0.0.0', port=5000, debug=False)
+def run_ui_server():
+    ui_server.socketio.run(ui_server.app,host='127.0.0.1', port=5001, debug=False)
 
-webui_thread = threading.Thread(target=run_webui)
-webui_thread.daemon = True
+ui_server_thread = threading.Thread(target=run_ui_server, daemon=True)
+ui_server_thread.start()
+
+webui_thread = threading.Thread(target=run_webui, daemon = True)
 webui_thread.start()
+
 tcp_thread = threading.Thread(target=start_tcp_server, daemon=True)
 tcp_thread.start()
+
 mainpage()
 while True:
     print("\nWas möchtest du tun? \n 1: Benutzer hinzufügen \n 2: Benutzer löschen \n 3: Alle Benutzer anzeigen \n 4: Tür Öffnung  \n 5: Zugriffsprotokolle anzeigen \n 6: Lösche alle Zugriffsprotokolle \n 0: Beenden")
@@ -44,7 +51,7 @@ while True:
 
     elif choice == "2":
         rfid_uid = input("RFID_UID: ")
-        delete_user(rfid_uid)
+        #delete_user(rfid_uid)
 
     elif choice == "3":
         users = get_users()

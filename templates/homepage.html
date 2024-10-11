@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Benutzer- und Log-Verwaltung</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
+        }
+        .navbar {
+            background-color: #333;
+            color: #fff;
+            padding: 15px 0;
+            text-align: center;
+        }
+        .navbar a {
+            color: #fff;
+            padding: 14px 20px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .navbar a:hover {
+            background-color: #575757;
+        }
+        .content {
+            padding: 20px;
+            background-color: #fff;
+            margin-top: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        form div {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="date"], input[type="file"], input[type="password"] {
+            width: 50%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+    </style>
+    <script>
+        function openTab(event, tabName) {
+            var i, tabContent, tabLinks;
+            tabContent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabContent.length; i++) {
+                tabContent[i].style.display = "none";
+            }
+            tabLinks = document.getElementsByClassName("tab-link");
+            for (i = 0; i < tabLinks.length; i++) {
+                tabLinks[i].className = tabLinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            event.currentTarget.className += " active";
+        }
+    </script>
+</head>
+<body>
+<div class="navbar">
+    {% if session.logged_in %}
+        <a href="#" class="tab-link" onclick="openTab(event, 'Tab1')">Benutzer hinzufügen</a>
+        <a href="#" class="tab-link" onclick="openTab(event, 'Tab2')">Benutzer löschen</a>
+        <a href="#" class="tab-link" onclick="openTab(event, 'Tab3')">Benutzer anzeigen</a>
+        <a href="#" class="tab-link" onclick="openTab(event, 'Tab4')">Logs abrufen</a>
+        <a href="#" class="tab-link" onclick="openTab(event, 'Tab5')">Logs löschen</a>
+        <a href="#" class="tab-link" onclick="openTab(event, 'Tab6')">Server herunterfahren</a>
+        <a href="/logout" class="tab-link">Logout</a>
+    {% endif %}
+</div>
+<div class="container">
+    {% if not session.logged_in %}
+        <div id="Login" class="content tab-content active">
+            <h2>Admin Login</h2>
+            <form action="/login" method="post">
+                <div>
+                    <label for="username">Benutzername:</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div>
+                    <label for="password">Passwort:</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <div>
+                    <input type="submit" value="Anmelden">
+                </div>
+            </form>
+        </div>
+    {% else %}
+        <div id="Tab1" class="content tab-content active">
+            <h2>Benutzer hinzufügen</h2>
+            <form id="addUserForm">
+                <div>
+                    <label for="username">Benutzername:</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div>
+                    <label for="rfid">RFID:</label>
+                    <input type="text" id="rfid" name="rfid" required>
+                </div>
+                <div>
+                    <label for="role">Rolle:</label>
+                    <input type="text" id="role" name="role" required>
+                </div>
+                <div>
+                    <label for="filePath">Bildpfad:</label>
+                    <input type="file" id="filePath" name="filePath">
+                </div>
+                <div>
+                    <input type="submit" value="Benutzer hinzufügen">
+                </div>
+            </form>
+        </div>
+        <script>
+            document.getElementById('addUserForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const formData = new FormData(event.target);
+                const data = {
+                    username: formData.get('username'),
+                    rfid: formData.get('rfid'),
+                    role: formData.get('role'),
+                    file: formData.get('filePath')
+                };
+
+                fetch('/add_user', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        alert('Benutzer erfolgreich hinzugefügt:\n' +
+                              'Benutzername: ' + data.username + '\n' +
+                              'RFID: ' + data.rfid + '\n' +
+                              'Rolle: ' + data.role);
+                    } else {
+                        alert('Fehler beim Hinzufügen des Benutzers.');
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                    alert('Fehler beim Hinzufügen des Benutzers.');
+                });
+            });
+        </script>
+        <div id="Tab2" class="content tab-content">
+            <h2>Benutzer löschen</h2>
+            <form id="deleteUserForm">
+                <div>
+                    <label for="rfid_delete">RFID:</label>
+                    <input type="text" id="rfid_delete" name="rfid_delete" required>
+                </div>
+                <div>
+                    <input type="submit" value="Benutzer löschen">
+                </div>
+            </form>
+        </div>
+        <script>
+            document.getElementById('deleteUserForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const formData = new FormData(event.target);
+                const data = {
+                    rfid: formData.get('rfid_delete')
+                };
+
+                fetch('/delete_user', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        alert('Benutzer erfolgreich entfernt:\n' +
+                              'RFID: ' + data.rfid);
+                    } else {
+                        alert('Fehler beim Entfernen des Benutzers.');
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                    alert('Fehler beim Entfernen des Benutzers.');
+                });
+            });
+        </script>
+        <div id="Tab3" class="content tab-content">
+            <h2>Benutzer anzeigen</h2>
+            <form action="/show_users" method="get">
+                <div>
+                    <input type="submit" value="Benutzer anzeigen">
+                </div>
+            </form>
+            <div id="user_list">
+                <!-- Benutzerliste wird hier angezeigt -->
+            </div>
+        </div>
+        <div id="Tab4" class="content tab-content">
+            <h2>Logs abrufen</h2>
+            <form action="/get_logs" method="post">
+                <div>
+                    <label for="log_date">Datum:</label>
+                    <input type="date" id="log_date" name="log_date" required>
+                </div>
+                <div>
+                    <input type="submit" value="Logs abrufen">
+                </div>
+            </form>
+            <div id="log_list">
+                <!-- Logliste wird hier angezeigt -->
+            </div>
+        </div>
+        <div id="Tab5" class="content tab-content">
+            <h2>Logs löschen</h2>
+            <form action="/delete_logs" method="post">
+                <div>
+                    <label for="log_date_delete">Datum:</label>
+                    <input type="date" id="log_date_delete" name="log_date_delete" required>
+                </div>
+                <div>
+                    <input type="submit" value="Logs löschen">
+                </div>
+            </form>
+        </div>
+        <div id="Tab6" class="content tab-content">
+            <h2>Server herunterfahren</h2>
+            <form action="/shutdown" method="post">
+                <div>
+                    <input type="submit" value="Server herunterfahren">
+                </div>
+            </form>
+        </div>
+    {% endif %}
+</div>
+</body>
+</html>

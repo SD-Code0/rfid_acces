@@ -120,7 +120,7 @@ def mainpage():
     default_image_path = os.path.join(os.path.dirname(__file__), 'default.png')
     with open(default_image_path, "rb") as image_file:
         encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
-    url = 'http://172.20.10.6:5000/update_ui'
+    url = 'http://127.0.0.1:5000/update_ui'
     response = requests.post(url, json={
         'username': "",
         'role': "",
@@ -160,4 +160,4 @@ def get_user_data():
 
 if __name__ == '__main__':
 
-    socketio.run(app, host='172.20.10.6', port=5000, debug=True)
+    socketio.run(app, host='0.0.0.0', port=5000, debug=False)
