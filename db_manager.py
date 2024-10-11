@@ -147,13 +147,16 @@ def get_access_logs(date):
 
 def delete_logs_from_db(date):
     conn, cursor = get_db_connection()
-    cursor.execute("DELETE FROM access_logs WHERE (access_time) = ?", (date,))
+    cursor.execute("DELETE FROM access_logs WHERE DATE(access_time) = ?", (date,))
     conn.commit()
-    print(f"Einträge für {date} in access_logs wurden gelöscht.")
     conn.close()
 
 def log_access(user_id):
     conn, cursor = get_db_connection()
     cursor.execute("INSERT INTO access_logs (user_id) VALUES (?)", (user_id,))
+    conn.commit()
+    conn.close()
+def save_data_to_db(data):
+    conn, cursor = get_db_connection()
     conn.commit()
     conn.close()

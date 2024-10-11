@@ -331,12 +331,30 @@
         </script>
         <div id="Tab6" class="content tab-content">
             <h2>Server herunterfahren</h2>
-            <form action="/shutdown" method="post">
+            <form id="shutdownForm" action="/shutdown" method="post">
                 <div>
                     <input type="submit" value="Server herunterfahren">
                 </div>
             </form>
         </div>
+        <script>
+            document.getElementById('shutdownForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                if (confirm('Bist du sicher, dass du den Server herunterfahren möchtest?')) {
+                    fetch('/shutdown', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        }
+                    })
+                    .then(response => response.text())
+                    .then(message => {
+                        alert(message);
+                    })
+                    .catch(error => console.error('Error shutting down server:', error));
+                }
+            });
+        </script>
     {% endif %}
 </div>
 </body>
