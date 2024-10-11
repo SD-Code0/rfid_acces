@@ -113,12 +113,6 @@ def get_access_logs(date):
     conn.close()
     return logs
 
-#def check_rfids(rfid_uid):
-    conn, cursor = get_db_connection()
-    cursor.execute("SELECT rfid_uid FROM users WHERE rfid_uid = ?", (rfid_uid,))
-    rfid = cursor.fetchone()
-    conn.close()
-    return rfid
 
 def delete_all_logs():
     conn, cursor = get_db_connection()

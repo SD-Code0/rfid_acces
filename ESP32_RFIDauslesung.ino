@@ -1,7 +1,7 @@
 #include <WiFi.h>
 
-const char* ssid = "iPhone";
-const char* password = "DasIstBastisWlan";
+const char* ssid = "ssid";
+const char* password = "Passwort";
 const char* host = "172.20.10.6";  // IP-Adresse des Python-Servers
 const uint16_t port = 12345;
 

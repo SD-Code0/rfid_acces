@@ -8,7 +8,6 @@ import socket
 from access_conroll import access_door
 from cryptography.fernet import Fernet
 import os
-import cryptography
 
 
 def verify_challange(challange_raw, challange_encrypted):

@@ -33,7 +33,6 @@ def open_door():
     time.sleep(10)
 
 def access_door(rfid_uid,fernet_key):
-  #  user = input("Benutzername: ")
     
     user = get_user_by_rfid(rfid_uid,fernet_key)
     if user and len(user) >= 4:
