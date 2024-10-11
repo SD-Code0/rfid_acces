@@ -9,21 +9,24 @@ from flask import Flask
 import threading
 from db_manager import create_tables, add_user, delete_user, get_users, get_access_logs, delete_all_logs
 import web_ui
+from web_ui import mainpage
 from access_conroll import access_door
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from espdata import start_tcp_server
 create_tables()
 
+
+
 def run_webui():
-    web_ui.socketio.run(web_ui.app, debug=False)
+    web_ui.socketio.run(web_ui.app,host='172.20.10.6', port=5000, debug=False)
 
 webui_thread = threading.Thread(target=run_webui)
 webui_thread.daemon = True
 webui_thread.start()
 tcp_thread = threading.Thread(target=start_tcp_server, daemon=True)
 tcp_thread.start()
-
+mainpage()
 while True:
     print("\nWas möchtest du tun? \n 1: Benutzer hinzufügen \n 2: Benutzer löschen \n 3: Alle Benutzer anzeigen \n 4: Tür Öffnung  \n 5: Zugriffsprotokolle anzeigen \n 6: Lösche alle Zugriffsprotokolle \n 0: Beenden")
 

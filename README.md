@@ -36,6 +36,8 @@ Dieses Projekt ist ein RFID-Zugangskontrollsystem, das verschiedene Technologien
     ```sh
     python main.py
     ```
+
+    Beachte das die ip-adressen im code mit der des Servers übereinstimmen
   
 
     Wähle die Option 1, um einen neuen Benutzer hinzuzufügen, und folge den Anweisungen.
