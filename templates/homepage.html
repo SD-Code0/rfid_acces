@@ -250,7 +250,7 @@
         </script>
         <div id="Tab4" class="content tab-content">
             <h2>Logs abrufen</h2>
-            <form action="/get_logs" method="post">
+            <form id="getLogsForm">
                 <div>
                     <label for="log_date">Datum:</label>
                     <input type="date" id="log_date" name="log_date" required>
@@ -263,6 +263,33 @@
                 <!-- Logliste wird hier angezeigt -->
             </div>
         </div>
+        
+        <script>
+            document.getElementById('getLogsForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const formData = new FormData(event.target);
+                const logDate = formData.get('log_date');
+        
+                fetch('/get_logs', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({ log_date: logDate })
+                })
+                .then(response => response.json())
+                .then(logs => {
+                    const logList = document.getElementById('log_list');
+                    logList.innerHTML = '';
+                    logs.forEach(log => {
+                        const logItem = document.createElement('div');
+                        logItem.textContent = `Timestamp: ${log.timestamp}, Log: ${log.log_entry}, RFID: ${log.rfid_uid}`;
+                        logList.appendChild(logItem);
+                    });
+                })
+                .catch(error => console.error('Error fetching logs:', error));
+            });
+        </script>
         <div id="Tab5" class="content tab-content">
             <h2>Logs löschen</h2>
             <form action="/delete_logs" method="post">

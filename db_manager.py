@@ -131,7 +131,17 @@ def get_access_logs(date):
     ''', (date,))
     logs = cursor.fetchall()
     conn.close()
-    return logs
+    log_list = []
+    for log in logs:
+        log_dict = {
+            'timestamp': log[0],
+            'log_entry': log[1],
+            'rfid_uid': log[2],
+        }
+        log_list.append(log_dict)
+    
+    return log_list
+    
 
 
 def delete_all_logs():
