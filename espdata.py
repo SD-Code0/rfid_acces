@@ -5,7 +5,7 @@
 # This source file is subject to the MIT license that is bundled
 # with this source code in the file LICENSE.
 import socket
-from access_conroll import access_door
+from access_conroll import access_door,denie_access
 from cryptography.fernet import Fernet
 import os
 
@@ -21,11 +21,14 @@ def verify_challange(challange_raw, challange_encrypted):
     
 
 def decrypt_data(fernet_key_encoded):
-    key_fernet_path = os.path.join(os.path.dirname(__file__), "fernet_key.pem")
-    fernet_key = open(key_fernet_path, "rb").read().strip()
-    fernet = Fernet(fernet_key)
-    farnet_key_decrypted = fernet.decrypt(fernet_key_encoded.encode()).decode()
-    return farnet_key_decrypted
+    if fernet_key_encoded:
+        key_fernet_path = os.path.join(os.path.dirname(__file__), "fernet_key.pem")
+        fernet_key = open(key_fernet_path, "rb").read().strip()
+        fernet = Fernet(fernet_key)
+        farnet_key_decrypted = fernet.decrypt(fernet_key_encoded.encode()).decode()
+        return farnet_key_decrypted
+    else:
+        print("Kein Fernetkey bekommen")
 
 
 def start_tcp_server():
@@ -39,15 +42,19 @@ def start_tcp_server():
         print(f"Verbindung von {addr} akzeptiert")
         data = client_socket.recv(1024).decode('utf-8')
         data_list = data.split(',')
-        rfid_uid = data_list[0]
-        fernet_key_encoded = data_list[1]
-        challenge_raw = data_list[2]
-        challenge_encrypted = data_list[3]
-        fernet_key = decrypt_data(fernet_key_encoded)
-        if verify_challange(challenge_raw, challenge_encrypted):
-            access_door(rfid_uid, fernet_key)
+        if data_list and len(data_list) >= 4:
+            rfid_uid = data_list[0]
+            fernet_key_encoded = data_list[1]
+            challenge_raw = data_list[2]
+            challenge_encrypted = data_list[3]
+            fernet_key = decrypt_data(fernet_key_encoded)
+            if verify_challange(challenge_raw, challenge_encrypted):
+                access_door(rfid_uid, fernet_key)
+            else:
+                print("Challange konnte nicht verifiziert werden")
         else:
-            print("Challange konnte nicht verifiziert werden")
+            denie_access()
+            print("ungültige Daten erhalten")
         
         
         

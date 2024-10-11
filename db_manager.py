@@ -40,6 +40,11 @@ def create_tables():
 def add_user(username, rfid_uid, role, image_path=None):
     conn, cursor = get_db_connection()
     try:
+        
+        fernet_key = Fernet.generate_key()
+        
+        fernet = Fernet(fernet_key)
+        
         if image_path:
             with open(image_path, "rb") as image_file:
                 encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
@@ -47,9 +52,11 @@ def add_user(username, rfid_uid, role, image_path=None):
             default_image_path = os.path.join(os.path.dirname(__file__), 'default.png')
             with open(default_image_path, "rb") as image_file:
                 encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
-        fernet_key = Fernet.generate_key()
-        
-        fernet = Fernet(fernet_key)
+                
+        encrypted_image = fernet.encrypt(encoded_image.encode())
+                                                   
+
+
         
         global_fernet = Fernet(open("fernet_key.pem", "rb").read())
         
@@ -59,11 +66,12 @@ def add_user(username, rfid_uid, role, image_path=None):
         encrypted_fernetkey = global_fernet.encrypt(fernet_key)
         with open(f"{username}encrypted__fernet_key.pem", "wb") as f:
             f.write(encrypted_fernetkey)
-        
+            
+
         encrypted_username = fernet.encrypt(username.encode())
         encrypted_role = fernet.encrypt(role.encode())
         cursor.execute("INSERT INTO users (username, rfid_uid, role, image) VALUES (?, ?, ?, ?)",
-                    (encrypted_username, rfid_uid, encrypted_role, encoded_image))
+                    (encrypted_username, rfid_uid, encrypted_role, encrypted_image))
         conn.commit()
     except sqlite3.IntegrityError:
         print("RFID ist bereits vorhanden.")
@@ -97,7 +105,8 @@ def get_user_by_rfid(rfid_uid, fernet_key):
     fernet = Fernet(fernet_key)
     username = fernet.decrypt(username)
     role = fernet.decrypt(role)
-    user = (user_id, username, role, image)
+    image_dec = fernet.decrypt(image)
+    user = (user_id, username, role, image_dec)
     conn.close()
     return user
 

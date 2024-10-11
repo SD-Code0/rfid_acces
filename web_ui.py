@@ -105,7 +105,7 @@ def home():
     <body>
         <div class="container">
             <h1>Tür zugang</h1>
-            <img id="image" src="default.jpg" alt="Image" width="200">
+            <img id="image" src="default.png" alt="Image" width="200">
             <p>Status: <span id="Status">Geschlossen</span></p>
             <p id="Username" class="hidden">Username: </p>
             <p id="Rolle" class="hidden">Rolle: </p>

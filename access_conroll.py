@@ -32,17 +32,31 @@ def open_door():
     print("Tür geöffnet")
     time.sleep(10)
 
+def denie_access():
+    print("Zugang verweigert oder unvollständige Benutzerdaten")
+    default_image_path = os.path.join(os.path.dirname(__file__), 'default.png')
+    with open(default_image_path, "rb") as image_file:
+        encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
+    url = 'http://localhost:5000/update_ui'
+    response = requests.post(url, json={
+        'username': "",
+        'role': "",
+        'image_data': encoded_image,
+        'status': 'Zugang verweigert'
+        })
+    if response.status_code == 200:
+        threading.Thread(target=default_screen, daemon=True).start()
+
 def access_door(rfid_uid,fernet_key):
     
     user = get_user_by_rfid(rfid_uid,fernet_key)
     if user and len(user) >= 4:
         print(f"Zugang gewährt für {user[1]}")
-        
         url = 'http://localhost:5000/update_ui'
         response = requests.post(url, json={
             'username': user[1].decode("utf-8"),
             'role': user[2].decode("utf-8"),
-            'image_data': user[3],
+            'image_data': user[3].decode("utf-8"),
             'status': 'Success'
         })
         threading.Thread(target=open_door, daemon=True).start()
@@ -55,10 +69,4 @@ def access_door(rfid_uid,fernet_key):
 
 
     else:
-        print("Zugang verweigert oder unvollständige Benutzerdaten")
-        url = 'http://localhost:5000/update_ui'
-        response = requests.post(url, json={
-            'status': 'Zugang verweigert'
-        })
-        if response.status_code == 200:
-            threading.Thread(target=default_screen, daemon=True).start()
+        denie_access()
