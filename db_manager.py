@@ -145,9 +145,9 @@ def get_access_logs(date):
     
 
 
-def delete_logs(date):
+def delete_logs_from_db(date):
     conn, cursor = get_db_connection()
-    cursor.execute("DELETE FROM access_logs WHERE (acces_log.access_time) = ?", (date,))
+    cursor.execute("DELETE FROM access_logs WHERE (access_time) = ?", (date,))
     conn.commit()
     print(f"Einträge für {date} in access_logs wurden gelöscht.")
     conn.close()

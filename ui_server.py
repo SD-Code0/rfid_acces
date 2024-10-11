@@ -10,7 +10,7 @@ from flask_socketio import SocketIO
 from flask_cors import CORS
 import os
 import sqlite3
-from db_manager import add_user,delete_user_by_rfid,get_users,get_access_logs,delete_logs
+from db_manager import add_user,delete_user_by_rfid,get_users,get_access_logs,delete_logs_from_db
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  
@@ -110,8 +110,8 @@ def get_logs():
 def delete_logs():
     if 'logged_in' in session:
         log_date = request.form['log_date']
-        logs = delete_logs(log_date)
-        return jsonify(logs)
+        delete_logs_from_db(log_date)
+        return jsonify({"status": "success", "message": f"Logs for {log_date} deleted"})
     else:
         return redirect(url_for('login'))
 

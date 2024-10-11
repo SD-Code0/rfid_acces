@@ -283,7 +283,7 @@
                     logList.innerHTML = '';
                     logs.forEach(log => {
                         const logItem = document.createElement('div');
-                        logItem.textContent = `Timestamp: ${log.timestamp}, Log ID: ${log.log_entry}, User ID: ${log.user_id}RFID: ${log.rfid_uid}`;
+                        logItem.textContent = `Timestamp: ${log.timestamp}, Log ID: ${log.log_entry}, User ID: ${log.user_id} RFID: ${log.rfid_uid}`;
                         logList.appendChild(logItem);
                     });
                 })
@@ -292,7 +292,7 @@
         </script>
         <div id="Tab5" class="content tab-content">
             <h2>Logs löschen</h2>
-            <form action="/delete_logs" method="post">
+            <form id="deleteLogsForm">
                 <div>
                     <label for="log_date_delete">Datum:</label>
                     <input type="date" id="log_date_delete" name="log_date_delete" required>
@@ -301,7 +301,34 @@
                     <input type="submit" value="Logs löschen">
                 </div>
             </form>
+            <div id="delete_logs_message"></div>
         </div>
+        
+        <script>
+            document.getElementById('deleteLogsForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const formData = new FormData(event.target);
+                const logDate = formData.get('log_date_delete');
+        
+                fetch('/delete_logs', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({ log_date: logDate })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const messageDiv = document.getElementById('delete_logs_message');
+                    if (data.status === "success") {
+                        messageDiv.textContent = data.message;
+                    } else {
+                        messageDiv.textContent = data.message;
+                    }
+                })
+                .catch(error => console.error('Error deleting logs:', error));
+            });
+        </script>
         <div id="Tab6" class="content tab-content">
             <h2>Server herunterfahren</h2>
             <form action="/shutdown" method="post">
