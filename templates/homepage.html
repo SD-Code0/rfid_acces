@@ -222,14 +222,31 @@
         <div id="Tab3" class="content tab-content">
             <h2>Benutzer anzeigen</h2>
             <form action="/show_users" method="get">
-                <div>
-                    <input type="submit" value="Benutzer anzeigen">
-                </div>
             </form>
             <div id="user_list">
                 <!-- Benutzerliste wird hier angezeigt -->
             </div>
         </div>
+        <script>
+            function fetchUsers() {
+                fetch('/show_users')
+                    .then(response => response.json())
+                    .then(users => {
+                        const userList = document.getElementById('user_list');
+                        userList.innerHTML = '';
+                        users.forEach(user => {
+                            const userItem = document.createElement('div');
+                            userItem.textContent = `ID: ${user.id}, RFID: ${user.rfid_uid}`;
+                            userList.appendChild(userItem);
+                        });
+                    })
+                    .catch(error => console.error('Error fetching users:', error));
+            }
+        
+            document.addEventListener('DOMContentLoaded', function() {
+                fetchUsers();
+            });
+        </script>
         <div id="Tab4" class="content tab-content">
             <h2>Logs abrufen</h2>
             <form action="/get_logs" method="post">

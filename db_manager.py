@@ -93,7 +93,17 @@ def get_users():
     cursor.execute("SELECT id, rfid_uid FROM users")
     users = cursor.fetchall()
     conn.close()
-    return users
+    
+    user_list = []
+    for user in users:
+        user_dict = {
+            'id': user[0],
+            'rfid_uid': user[1]
+        }
+        user_list.append(user_dict)
+    
+    return user_list
+    
 
 def get_user_by_rfid(rfid_uid, fernet_key):
     conn, cursor = get_db_connection()
