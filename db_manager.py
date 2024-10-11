@@ -52,6 +52,9 @@ def add_user(username, rfid_uid, role, image_path=None):
         fernet = Fernet(fernet_key)
         with open(f"{username}_fernet_key.pem", "wb") as f:
             f.write(fernet_key)
+        encrypted_fernetkey = fernet.encrypt(fernet_key)
+        with open(f"{username}encrypted__fernet_key.pem", "wb") as f:
+            f.write(encrypted_fernetkey)
         
         encrypted_username = fernet.encrypt(username.encode())
         encrypted_role = fernet.encrypt(role.encode())
@@ -74,8 +77,7 @@ def delete_user(rfid_uid):
 
 def get_users():
     conn, cursor = get_db_connection()
-    print("gerade mit verschlüsselten Daten")
-    cursor.execute("SELECT id, username, rfid_uid, role FROM users")
+    cursor.execute("SELECT id, rfid_uid FROM users")
     users = cursor.fetchall()
     conn.close()
     return users
@@ -98,7 +100,7 @@ def get_user_by_rfid(rfid_uid, fernet_key):
 def get_access_logs(date):
     conn, cursor = get_db_connection()
     cursor.execute('''
-        SELECT access_logs.log_id, access_logs.user_id, users.username, users.role, access_logs.access_time
+        SELECT access_logs.log_id, access_logs.user_id, users.rfid_uid, access_logs.access_time
         FROM access_logs
         JOIN users ON access_logs.user_id = users.id
         WHERE DATE(access_logs.access_time) = ?
@@ -107,7 +109,7 @@ def get_access_logs(date):
     conn.close()
     return logs
 
-def check_rfids(rfid_uid):
+#def check_rfids(rfid_uid):
     conn, cursor = get_db_connection()
     cursor.execute("SELECT rfid_uid FROM users WHERE rfid_uid = ?", (rfid_uid,))
     rfid = cursor.fetchone()
