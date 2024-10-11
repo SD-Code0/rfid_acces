@@ -134,9 +134,10 @@ def get_access_logs(date):
     log_list = []
     for log in logs:
         log_dict = {
-            'timestamp': log[0],
-            'log_entry': log[1],
-            'rfid_uid': log[2],
+            'timestamp': log[3],
+            'log_entry': log[0],
+            'user_id': log[1],
+            'rfid_uid': log[2]
         }
         log_list.append(log_dict)
     
@@ -144,11 +145,11 @@ def get_access_logs(date):
     
 
 
-def delete_all_logs():
+def delete_logs(date):
     conn, cursor = get_db_connection()
-    cursor.execute("DELETE FROM access_logs")
+    cursor.execute("DELETE FROM access_logs WHERE (acces_log.access_time) = ?", (date,))
     conn.commit()
-    print("Alle Einträge in access_logs wurden gelöscht.")
+    print(f"Einträge für {date} in access_logs wurden gelöscht.")
     conn.close()
 
 def log_access(user_id):

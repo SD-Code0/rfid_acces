@@ -7,7 +7,7 @@
 
 from flask import Flask
 import threading
-from db_manager import create_tables, add_user, get_users, get_access_logs, delete_all_logs
+from db_manager import create_tables, add_user, get_users, get_access_logs
 import web_ui
 import ui_server
 from web_ui import mainpage
@@ -83,8 +83,8 @@ while True:
                 print(f"Log ID: {log_id}, UserID: {user_id}, Rfid: {rfid_uid} um: {access_time.strftime('%Y-%m-%d %H:%M:%S %Z')}")
     elif choice == "6":
         delete = input("Möchtest du wirklich alle Logs löschen? (y/n): ")
-        if delete.lower() == "y":
-            delete_all_logs()
+        #if delete.lower() == "y":
+            #delete_all_logs()
 
     elif choice == "0":
         print("Programm beendet.")

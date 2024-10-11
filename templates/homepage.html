@@ -283,7 +283,7 @@
                     logList.innerHTML = '';
                     logs.forEach(log => {
                         const logItem = document.createElement('div');
-                        logItem.textContent = `Timestamp: ${log.timestamp}, Log: ${log.log_entry}, RFID: ${log.rfid_uid}`;
+                        logItem.textContent = `Timestamp: ${log.timestamp}, Log ID: ${log.log_entry}, User ID: ${log.user_id}RFID: ${log.rfid_uid}`;
                         logList.appendChild(logItem);
                     });
                 })
