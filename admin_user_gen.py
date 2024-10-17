@@ -1,4 +1,4 @@
-# This file is part of the Project Name.
+# This file is part of the Project RFID Access contoll .
 # 
 # (c) 2024 Sascha420
 # 

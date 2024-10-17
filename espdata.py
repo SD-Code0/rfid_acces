@@ -1,4 +1,4 @@
-# This file is part of the Project Name.
+# This file is part of the Project RFID Access contoll .
 # 
 # (c) 2024 Sascha420
 # 
@@ -60,5 +60,4 @@ def start_tcp_server():
         
         client_socket.close()
 
-# Starte den TCP-Server in einem separaten Thread oder füge ihn in die Hauptschleife ein
 
