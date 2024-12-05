@@ -25,9 +25,9 @@ void loop() {
     return;
   }
 
-  String data = "123abc";
+  String data = "2426";
   data += ",";
-  data += "gAAAAABnBqrLwJJat4cU-DxaBEkPcFD3Z7glzVPIuyyMpPAmixpabHyPtl8cn9xHFnEfPWaAntcFdDvgDBsSE6yE-kMORmKZZNw5KN1inwTLFny_tDj2K7_KgOgmkHiw5o_K7XELOopB";
+  data += "gAAAAABnUEgS4TtAbcEd6qx_0BNVYtLxZhW-uCttihsMo95Mk1zwhRtcuvchxIz72lNeO2vyOiRutoZ3DnNI4nqeG6taHhQwrazm_d-rDlniV2gWye0hEyTenHZAPTKcw1Ude95H1023";
   data += ",";
   data += "123";
   data += ",";

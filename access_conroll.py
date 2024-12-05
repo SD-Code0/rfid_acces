@@ -29,8 +29,12 @@ def default_screen():
         print(f"Fehler bei der Anfrage: {response.status_code}")
 
 def open_door():
-    print("Tür geöffnet")
-    time.sleep(10)
+    actor_domain = "lock"
+    service = "open"
+    entity_id = "lock.turoffner_eingang"
+        
+        
+    control_actor(actor_domain, service, entity_id) == "locked"
 
 def denie_access():
     print("Zugang verweigert oder unvollständige Benutzerdaten")
@@ -51,6 +55,10 @@ def access_door(rfid_uid,fernet_key):
     
     user = get_user_by_rfid(rfid_uid,fernet_key)
     if user and len(user) >= 4:
+        
+        
+        open_door()
+            
         print(f"Zugang gewährt für {user[1]}")
         url = 'http://127.0.0.1:5000/update_ui'
         response = requests.post(url, json={
@@ -70,3 +78,60 @@ def access_door(rfid_uid,fernet_key):
 
     else:
         denie_access()
+
+
+BASE_URL = "http://homeassistant.local:8123"  
+ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIxZGNlNTUxMjdmZGM0YzBmYmM0YjgyM2FiY2Q2OTBlYyIsImlhdCI6MTczMjMyMzM0MiwiZXhwIjoyMDQ3NjgzMzQyfQ.vKm4hbQ1wTKg1M9KtNsH2Yco5nkqdDxGE5ZsjpU9HpM"  # Ersetze mit deinem Token
+
+HEADERS = {
+    "Authorization": f"Bearer {ACCESS_TOKEN}",
+    "Content-Type": "application/json"
+}
+
+
+data = {
+    "name": "Testartikel4",
+}
+
+
+def control_actor(domain, service, entity_id):
+    """
+    Steuert einen Aktor über die Home Assistant API.
+    :param domain: Gerätetyp, z. B. 'light', 'switch'
+    :param service: Dienst, z. B. 'turn_on', 'turn_off'
+    :param entity_id: Entity-ID des Geräts
+    :param additional_data: Zusätzliche Daten für den Dienst
+    """
+    url = f"{BASE_URL}/api/services/{domain}/{service}"
+    payload = {
+        "entity_id": entity_id
+    }
+    
+    try:
+        response = requests.post(url, headers=HEADERS, json=payload)
+        if response.status_code == 200:
+            print(f"{domain}.{service} erfolgreich ausgeführt für {entity_id}!")
+        else:
+            print(f"Fehler: {response.status_code} - {response.text}")
+    except Exception as e:
+        print(f"Ein Fehler ist aufgetreten: {e}")
+        
+def get_status(entity_id):
+    url = f"{BASE_URL}/api/states/{entity_id}"
+    try:
+        response = requests.get(url, headers=HEADERS)
+        if response.status_code == 200:
+            data = response.json()
+            print(f"Aktueller Status von {entity_id}: {data['state']}")
+            return data
+        else:
+            print(f"Fehler: {response.status_code} - {response.text}")
+    except Exception as e:
+        print(f"Ein Fehler ist aufgetreten: {e}")
+    return None
+
+# Beispiel: Licht einschalten
+# control_actor("light", "turn_on", "light.lampe_wohnzimmer")
+
+# Aufruf der Funktion
+# add_to_shopping_list()
