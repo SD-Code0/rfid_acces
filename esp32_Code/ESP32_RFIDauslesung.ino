@@ -1,58 +1,103 @@
-#include <WiFi.h>
 #include <SPI.h>
 #include <MFRC522.h>
+#include <WiFi.h>
+
+#define SS_PIN 21
+#define RST_PIN 14
+
+MFRC522 mfrc522(SS_PIN, RST_PIN);  // Create MFRC522 instance
 
 const char* ssid = "H304";
 const char* password = "VTEa26-2426";
-const char* host = "192.168.188.22";  // IP-Adresse des Python-Servers
+const char* host = "192.168.188.22";
 const uint16_t port = 12345;
+const char* pos = "eingang";
 
-const char* RFID = "2426"; // RFID-Nummer
-const char* enc_fernet = "gAAAAABnUEgS4TtAbcEd6qx_0BNVYtLxZhW-uCttihsMo95Mk1zwhRtcuvchxIz72lNeO2vyOiRutoZ3DnNI4nqeG6taHhQwrazm_d-rDlniV2gWye0hEyTenHZAPTKcw1Ude95H1023"; // Verschlüsselter fernet key
-const char* challange_data = ""; // Verschlüsselte Daten
-const char* challange_response = ""; // Verschlüsselte Signatur
-const char* pos = "eingang"; // Position des RFID-Lesers
-
+String RFID = ""; // RFID-Nummer
+String fullData = ""; // Gesamte gelesene Daten
 
 void setup() {
   Serial.begin(115200);
+
+  SPI.begin(13, 12, 11);  // SCK, MISO, MOSI, SS
+  mfrc522.PCD_Init();
+  Serial.println("Lesen von höheren Blöcken...");
+
   WiFi.begin(ssid, password);
-
-  // MAC-Adresse des ESP32 abrufen
-  String macAddress = WiFi.macAddress();
-  Serial.println("MAC-Adresse des ESP32:");
-  Serial.println(macAddress);
-
-
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
     Serial.println("Verbindung zu WiFi...");
   }
-
   Serial.println("WiFi verbunden.");
 }
 
 void loop() {
+  if (!mfrc522.PICC_IsNewCardPresent()) return;
+  if (!mfrc522.PICC_ReadCardSerial()) return;
+
+  RFID = "";
+  for (byte i = 0; i < mfrc522.uid.size; i++) {
+    RFID += String(mfrc522.uid.uidByte[i] < 0x10 ? "0" : "");
+    RFID += String(mfrc522.uid.uidByte[i], HEX);
+  }
+  RFID.toUpperCase();
+  Serial.println("RFID: " + RFID);
+
+  MFRC522::MIFARE_Key key;
+  for (byte i = 0; i < 6; i++) key.keyByte[i] = 0xFF;
+
+  byte buffer[18];
+  byte startBlock = 16;
+  byte currentBlock = startBlock;
+  fullData = "";
+
+  // Lesen von bis zu 12 Blöcken, Schlüsselblöcke überspringen
+  for (byte i = 0; i < 12; i++) {
+    // Prüfen, ob der aktuelle Block ein Schlüsselblock ist, und überspringen
+    if ((currentBlock + 1) % 4 == 0) {
+      currentBlock++;  // Überspringe Schlüsselblock
+    }
+
+    // Authentifizieren des Blocks
+    Serial.println("Authentifizieren für Block " + String(currentBlock));
+    MFRC522::StatusCode status = mfrc522.PCD_Authenticate(
+        MFRC522::PICC_CMD_MF_AUTH_KEY_A, currentBlock, &key, &(mfrc522.uid));
+    if (status != MFRC522::STATUS_OK) {
+      Serial.println("Authentifizierung fehlgeschlagen bei Block " + String(currentBlock));
+      return;
+    }
+
+    // Block lesen
+    byte size = sizeof(buffer);
+    status = mfrc522.MIFARE_Read(currentBlock, buffer, &size);
+    if (status == MFRC522::STATUS_OK) {
+      for (byte j = 0; j < 16; j++) {
+        if (buffer[j] != 0)  // Leere Bytes ignorieren
+          fullData += char(buffer[j]);
+      }
+      Serial.println("Block " + String(currentBlock) + " gelesen");
+    } else {
+      Serial.println("Lesefehler bei Block " + String(currentBlock));
+      return;
+    }
+
+    currentBlock++;  // Zum nächsten Block wechseln
+  }
+
+  Serial.println("Gesamte Daten: " + fullData);
+  mfrc522.PICC_HaltA();
+  mfrc522.PCD_StopCrypto1();
+
+  // Daten an den Server senden
   WiFiClient client;
   if (!client.connect(host, port)) {
-    Serial.println("Verbindung zum Server fehlgeschlagen.");
-    delay(1000);
+    Serial.println("Serververbindung fehlgeschlagen.");
     return;
   }
 
-  if (RFID && enc_fernet && challange_data[0] != '\0' && challange_response[0] != '\0' && pos) {
-    String data = String(RFID) + "," + String(enc_fernet) + "," + String(challange_data) + "," + String(challange_response) + "," + String(pos);
-    client.print(data);
-    Serial.println("Daten gesendet: " + data);
-  } else if (RFID && enc_fernet && pos) {
-    String data = String(RFID) + "," + String(enc_fernet) + "," + String(pos);
-    client.print(data);
-    Serial.println("Daten gesendet: " + data);
-  } else {
-    Serial.println("Fehler: RFID, enc_fernet und pos müssen gesetzt sein.");
-    return;
-  }
+  String payload = RFID + "," + fullData + "," + pos;
+  client.print(payload);
+  Serial.println("Daten gesendet: " + payload);
 
-  client.stop();
-  delay(30000);  // Warte 30 Sekunden, bevor erneut gesendet wird
+  delay(1000);
 }
