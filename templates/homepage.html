@@ -95,6 +95,7 @@
         <a href="#" class="tab-link" onclick="openTab(event, 'Tab3')">Benutzer anzeigen</a>
         <a href="#" class="tab-link" onclick="openTab(event, 'Tab4')">Logs abrufen</a>
         <a href="#" class="tab-link" onclick="openTab(event, 'Tab5')">Logs löschen</a>
+        <a href="#" class="tab-link" onclick="openTab(event, 'TabDevices')">Geräte</a>
         <a href="#" class="tab-link" onclick="openTab(event, 'Tab6')">Server herunterfahren</a>
         <a href="/logout" class="tab-link">Logout</a>
     {% endif %}
@@ -118,6 +119,36 @@
             </form>
         </div>
     {% else %}
+    <div id="TabDevices" class="content tab-content">
+        <h2>Geräte verwalten</h2>
+    
+        <h3>Gerät hinzufügen</h3>
+        <form id="addDeviceForm">
+            <div>
+                <label for="actor_domain">Actor Domain:</label>
+                <input type="text" id="actor_domain" name="actor_domain" required>
+            </div>
+            <div>
+                <label for="service">Service:</label>
+                <input type="text" id="service" name="service" required>
+            </div>
+            <div>
+                <label for="entity_id">Entity ID:</label>
+                <input type="text" id="entity_id" name="entity_id" required>
+            </div>
+            <div>
+                <label for="device_position">Device Position:</label>
+                <input type="text" id="device_position" name="device_position" required>
+            </div>
+            <div>
+                <input type="submit" value="Gerät hinzufügen">
+            </div>
+        </form>
+    
+        <h3>Gespeicherte Geräte</h3>
+        <button id="listDevicesButton">Geräte auflisten</button>
+        <div id="device_list"></div>
+    </div>
         <div id="Tab1" class="content tab-content active">
             <h2>Benutzer hinzufügen</h2>
             <form id="addUserForm">
@@ -142,6 +173,58 @@
                 </div>
             </form>
         </div>
+        <script>
+            document.getElementById('addDeviceForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const formData = new FormData(event.target);
+        
+                fetch('/add_device', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert('Gerät erfolgreich hinzugefügt');
+                        fetchDevices();
+                    } else {
+                        alert('Fehler: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Fehler beim Hinzufügen:', error);
+                });
+            });
+        
+            document.getElementById('listDevicesButton').addEventListener('click', function() {
+                fetchDevices();
+            });
+        
+            function fetchDevices() {
+                fetch('/get_devices')
+                    .then(response => response.json())
+                    .then(devices => {
+                        const deviceList = document.getElementById('device_list');
+                        deviceList.innerHTML = '';
+                        devices.forEach(device => {
+                            const deviceItem = document.createElement('div');
+                            deviceItem.textContent = `
+                                ID: ${device.device_id}, 
+                                Actor Domain: ${device.actor_domain}, 
+                                Service: ${device.service}, 
+                                Entity ID: ${device.entity_id}, 
+                                Position: ${device.device_position}
+                            `;
+                            deviceList.appendChild(deviceItem);
+                        });
+                    })
+                    .catch(error => console.error('Fehler beim Abrufen der Geräte:', error));
+            }
+        
+            document.addEventListener('DOMContentLoaded', function() {
+                fetchDevices();
+            });
+        </script>
         <script>
             document.getElementById('addUserForm').addEventListener('submit', function(event) {
                 event.preventDefault();

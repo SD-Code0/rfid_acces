@@ -5,7 +5,7 @@
 # This source file is subject to the MIT license that is bundled
 # with this source code in the file LICENSE.
 import requests
-from db_manager import get_user_by_rfid,log_access
+from db_manager import get_user_by_rfid,log_access,get_devices
 import time
 import base64
 import os
@@ -16,7 +16,7 @@ def default_screen():
     default_image_path = os.path.join(os.path.dirname(__file__), 'default.png')
     with open(default_image_path, "rb") as image_file:
         encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
-    url = 'http://127.0.0.1:5000/update_ui'
+    url = 'http://127.0.0.1:5002/update_ui'
     response = requests.post(url, json={
         'username': "",
         'role': "",
@@ -28,20 +28,21 @@ def default_screen():
     else:
         print(f"Fehler bei der Anfrage: {response.status_code}")
 
-def open_door():
-    actor_domain = "lock"
-    service = "open"
-    entity_id = "lock.turoffner_eingang"
-        
-        
-    control_actor(actor_domain, service, entity_id) == "locked"
+def open_door(device_data):
+    
+    for device in device_data:
+        actor_domain = (device['actor_domain'])
+        service = (device['service'])
+        entity_id = (device['entity_id'])
+    print(f"Öffne Tür mit {actor_domain}.{service} für {entity_id}")
+    control_actor(actor_domain, service, entity_id)
 
 def denie_access():
     print("Zugang verweigert oder unvollständige Benutzerdaten")
     default_image_path = os.path.join(os.path.dirname(__file__), 'default.png')
     with open(default_image_path, "rb") as image_file:
         encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
-    url = 'http://127.0.0.1:5000/update_ui'
+    url = 'http://127.0.0.1:5002/update_ui'
     response = requests.post(url, json={
         'username': "",
         'role': "",
@@ -51,29 +52,35 @@ def denie_access():
     if response.status_code == 200:
         threading.Thread(target=default_screen, daemon=True).start()
 
-def access_door(rfid_uid,fernet_key):
+def access_door(rfid_uid,fernet_key,position):
+    device_data = get_devices(position)
     
     user = get_user_by_rfid(rfid_uid,fernet_key)
+
+    
+    
     if user and len(user) >= 4:
+        for device in device_data:
+            device_pos = (device['device_position'])
+        if position == str(device_pos):
         
-        
-        open_door()
             
-        print(f"Zugang gewährt für {user[1]}")
-        url = 'http://127.0.0.1:5000/update_ui'
-        response = requests.post(url, json={
-            'username': user[1].decode("utf-8"),
-            'role': user[2].decode("utf-8"),
-            'image_data': user[3].decode("utf-8"),
-            'status': 'Success'
-        })
-        threading.Thread(target=open_door, daemon=True).start()
-        log_access(user[0])
-        if response.status_code == 200:
-            print("Benutzerdaten erfolgreich an die Web-UI übergeben")
-            threading.Thread(target=default_screen, daemon=True).start()
-        else:
-            print(f"Fehler bei der Anfrage: {response.status_code}")
+            print(f"Zugang gewährt für {user[1]}")
+            url = 'http://127.0.0.1:5002/update_ui'
+            response = requests.post(url, json={
+                'username': user[1].decode("utf-8"),
+                'role': user[2].decode("utf-8"),
+                'image_data': user[3].decode("utf-8"),
+                'status': 'Success'
+            })
+            threading.Thread(target=open_door(device_data), daemon=True).start()
+            log_access(user[0])
+            if response.status_code == 200:
+                print("Benutzerdaten erfolgreich an die Web-UI übergeben")
+                threading.Thread(target=default_screen, daemon=True).start()
+            else:
+                print(f"Fehler bei der Anfrage: {response.status_code}")
+
 
 
     else:

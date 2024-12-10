@@ -42,19 +42,29 @@ def start_tcp_server():
         print(f"Verbindung von {addr} akzeptiert")
         data = client_socket.recv(1024).decode('utf-8')
         data_list = data.split(',')
-        if data_list and len(data_list) >= 4:
+        if data_list and len(data_list) >= 3:
             rfid_uid = data_list[0]
             fernet_key_encoded = data_list[1]
-            challenge_raw = data_list[2]
-            challenge_encrypted = data_list[3]
+            position = data_list[2]
+            #print(f"RFID: {rfid_uid}, Fernetkey: {fernet_key_encoded}, Position: {position}")
             fernet_key = decrypt_data(fernet_key_encoded)
-            if verify_challange(challenge_raw, challenge_encrypted):
-                access_door(rfid_uid, fernet_key)
-            else:
-                print("Challange konnte nicht verifiziert werden")
+            print(f"rfid_uid: {rfid_uid}, fernet_key: {fernet_key}, position: {position}")
+            access_door(rfid_uid, fernet_key, position)
+        #if data_list and len(data_list) >= 4:
+        #    rfid_uid = data_list[0]
+        #    fernet_key_encoded = data_list[1]
+        #    challenge_raw = data_list[2]
+        #    challenge_encrypted = data_list[3]
+        #    position = data_list[4]
+        #    fernet_key = decrypt_data(fernet_key_encoded)
+        #    if verify_challange(challenge_raw, challenge_encrypted):
+        #        access_door(rfid_uid, fernet_key, position)
+        #    else:
+        #        print("Challange konnte nicht verifiziert werden")
         else:
             denie_access()
             print("ungültige Daten erhalten")
+            print(f"die ehaltenden daten sind: {data_list}")
         
         
         

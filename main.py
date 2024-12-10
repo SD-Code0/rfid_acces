@@ -15,14 +15,13 @@ import signal
 import sqlite3
 from espdata import start_tcp_server
 from web_ui import mainpage
-from db_manager import add_user,delete_user_by_rfid,get_users,get_access_logs,delete_logs_from_db,create_tables
-
+from db_manager import add_user,delete_user_by_rfid,get_users,get_access_logs,delete_logs_from_db,create_tables,get_devices_by_pos,db_add_device
 create_tables()
 
 
 
 def run_webui():
-    web_ui.socketio.run(web_ui.app,host='0.0.0.0', port=5000, debug=False)
+    web_ui.socketio.run(web_ui.app,host='0.0.0.0', port=5002, debug=False)
 
 
 
@@ -152,5 +151,41 @@ def shutdown():
     else:
         return redirect(url_for('login'))
 
+
+
+@app.route('/add_device', methods=['POST'])
+def add_device():
+    actor_domain = request.form.get('actor_domain')
+    service = request.form.get('service')
+    entity_id = request.form.get('entity_id')
+    device_position = request.form.get('device_position')
+
+    if not all([actor_domain, service, entity_id, device_position]):
+        return jsonify({'status': 'error', 'message': 'Alle Felder sind erforderlich'}), 400
+    else:
+        db_add_device(actor_domain, service, entity_id, device_position)
+        return jsonify({'status': 'success', 'message': 'Gerät hinzugefügt'})
+
+@app.route('/get_devices', methods=['GET'])
+def get_devices():
+    try:
+        devices = get_devices_by_pos()
+
+        # Debug-Ausgabe
+        print("Abgerufene Geräte:", devices)
+
+        devices_list = [
+            {
+                'device_id': device[0],
+                'actor_domain': device[1],
+                'service': device[2],
+                'entity_id': device[3],
+                'device_position': device[4]
+            } for device in devices
+        ]
+        return jsonify(devices_list)
+    except Exception as e:
+        print("Fehler beim Abrufen der Geräte:", str(e))  # Debug
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 if __name__ == '__main__':
     socketio.run(app, host='127.0.0.1', port=5001, debug=False)

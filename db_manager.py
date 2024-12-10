@@ -34,6 +34,18 @@ def create_tables():
             FOREIGN KEY (user_id) REFERENCES users(id) 
         )
     ''')
+    
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS devices(
+            device_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            actor_domain TEXT NOT NULL,
+            service TEXT NOT NULL,
+            entity_id TEXT NOT NULL,
+            device_position TEXT NOT NULL
+        )
+    ''')
+    
+    
     conn.commit()
     conn.close()
 
@@ -118,6 +130,7 @@ def get_user_by_rfid(rfid_uid, fernet_key):
     role = fernet.decrypt(role)
     image_dec = fernet.decrypt(image)
     user = (user_id, username, role, image_dec)
+    
     conn.close()
     return user
 
@@ -144,6 +157,38 @@ def get_access_logs(date):
     return log_list
     
 
+def get_devices(location):
+    conn, cursor = get_db_connection()
+    cursor.execute("SELECT device_id, actor_domain, service, entity_id, device_position FROM devices WHERE device_position = ?",(location,))
+    devices = cursor.fetchall()
+    conn.close()
+    
+    device_list = []
+    for device in devices:
+        device_dict = {
+            'device_id': device[0],
+            'actor_domain': device[1],
+            'service': device[2],
+            'entity_id': device[3],
+            'device_position': device[4]
+        }
+        device_list.append(device_dict)
+    
+    return device_list
+
+def db_add_device(actor_domain, service, entity_id, device_position):
+    conn, cursor = get_db_connection()
+    cursor.execute("INSERT INTO devices (actor_domain, service, entity_id, device_position) VALUES (?, ?, ?, ?)", (actor_domain, service, entity_id, device_position))
+    conn.commit()
+    conn.close()
+
+def get_devices_by_pos():
+    
+    conn,cursor = get_db_connection()
+    cursor.execute("SELECT * FROM devices")
+    devices = cursor.fetchall()
+    conn.close()
+    return devices
 
 def delete_logs_from_db(date):
     conn, cursor = get_db_connection()
