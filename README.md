@@ -6,8 +6,8 @@ Dieses Projekt ist ein RFID-Zugangskontrollsystem, das verschiedene Technologien
 
 1. **Repository klonen**:
    ```sh
-   git clone https://github.com/dein-benutzername/dein-projekt.git
-   cd dein-projekt
+   git clone https://github.com/SD-Code0/rfid_acces.git
+   cd rfid_acces
 
 2. **Abhängigkeiten installieren:**:
    ```sh
@@ -19,7 +19,7 @@ Dieses Projekt ist ein RFID-Zugangskontrollsystem, das verschiedene Technologien
     ## Konfiguration
 
     - **WiFi-Einstellungen**:
-    - Bearbeite die Datei [RFIDauslesung_copy_20241009134215.ino] und füge deine WiFi-SSID und dein Passwort hinzu:
+    - Bearbeite die Datei [ESP32_RFIDauslesung.ino] und füge deine WiFi-SSID und dein Passwort hinzu:
         ```c++
         const char* ssid = "deine-ssid";
         const char* password = "dein-passwort";
