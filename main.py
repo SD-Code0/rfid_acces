@@ -15,7 +15,7 @@ import web_ui
 import sqlite3
 from espdata import start_tcp_server
 from web_ui import mainpage
-from db_manager import add_user,delete_user_by_rfid,get_users,get_access_logs,delete_logs_from_db,create_tables,get_devices_by_pos,db_add_device,user_exists_by_rfid,db_delete_device,db_check_entity_id
+from db_manager import add_user,delete_user_by_rfid,get_users,get_access_logs,delete_logs_from_db,create_tables,get_devices_by_pos,db_add_device,user_exists_by_rfid,db_delete_device,db_check_entity_id,device_exists
 create_tables()
 
 
@@ -213,11 +213,22 @@ def add_device():
 @app.route('/delete_devices_by_position', methods=['POST'])
 def db_devices_by_position():
     if 'logged_in' not in session:
-        return jsonify({"status": "error", "message": "Not logged in"}), 401
+        return jsonify({"status": "error", "message": "Nicht authentifiziert"}), 401
 
-    device_position = request.form.get('device_position', '')
-    db_delete_device(device_position)
-    return jsonify({"status": "success", "position": device_position})
+    device_position = request.form.get('device_position', '').strip()
+    
+    if not device_position:
+        return jsonify({"status": "error", "message": "Keine Geräteposition angegeben"}), 400
+
+    # Überprüfen, ob ein Gerät an der angegebenen Position existiert
+    if not device_exists(device_position):
+        return jsonify({"status": "error", "message": f"Kein Gerät an Position '{device_position}' gefunden."}), 404
+
+    try:
+        db_delete_device(device_position)
+        return jsonify({"status": "success", "message": f"Gerät an Position '{device_position}' erfolgreich gelöscht."})
+    except Exception as e:
+        return jsonify({"status": "error", "message": f"Fehler beim Löschen des Geräts: {str(e)}"}), 500
 
 @app.route('/get_devices', methods=['GET'])
 def get_devices():
@@ -241,5 +252,4 @@ def get_devices():
         print("Fehler beim Abrufen der Geräte:", str(e))  # Debug
         return jsonify({'status': 'error', 'message': str(e)}), 500
 if __name__ == '__main__':
-    app.secret_key = 'super_secret_key'
     socketio.run(app, host='127.0.0.1', port=5001, debug=False)

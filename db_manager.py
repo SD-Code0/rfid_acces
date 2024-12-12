@@ -195,14 +195,24 @@ def db_add_device(actor_domain, service, entity_id, device_position):
     conn.commit()
     conn.close()
 
-def db_delete_device(device_position):
+def db_delete_device(position):
     conn, cursor = get_db_connection()
-    cursor.execute("DELETE FROM devices WHERE device_position = ?", (device_position,))
-    conn.commit()
-    conn.close()
+    try:
+        cursor.execute("DELETE FROM devices WHERE device_position = ?", (position,))
+        conn.commit()
+        if cursor.rowcount == 0:
+            raise ValueError("Kein Gerät zum Löschen gefunden.")
+    finally:
+        conn.close()
 
-def get_devices_by_pos():
-    
+def device_exists(position):
+    conn, cursor = get_db_connection()
+    cursor.execute("SELECT COUNT(*) FROM devices WHERE device_position = ?", (position,))
+    count = cursor.fetchone()[0]
+    conn.close()
+    return count > 0
+
+def get_devices_by_pos():   
     conn,cursor = get_db_connection()
     cursor.execute("SELECT * FROM devices")
     devices = cursor.fetchall()
