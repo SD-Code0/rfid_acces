@@ -1,6 +1,6 @@
 # This file is part of the Project RFID Access contoll .
 # 
-# (c) 2024 Sascha420
+# (c) 2024 SD-Code0
 # 
 # This source file is subject to the MIT license that is bundled
 # with this source code in the file LICENSE.
@@ -30,6 +30,7 @@ def create_tables():
         CREATE TABLE IF NOT EXISTS access_logs(
             log_id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER NOT NULL,
+            position TEXT NOT NULL,
             access_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users(id) 
         )
@@ -40,7 +41,7 @@ def create_tables():
             device_id INTEGER PRIMARY KEY AUTOINCREMENT,
             actor_domain TEXT NOT NULL,
             service TEXT NOT NULL,
-            entity_id TEXT NOT NULL,
+            entity_id TEXT NOT NULL UNIQUE,
             device_position TEXT NOT NULL
         )
     ''')
@@ -70,22 +71,16 @@ def add_user(username, rfid_uid, role, image_path=None):
 
 
         
-        global_fernet = Fernet(open("fernet_key.pem", "rb").read())
+        global_fernet = Fernet(open("fernet_key.pem", "rb").read())  
         
-        with open(f"{username}_fernet_key.pem", "wb") as f:
-            f.write(fernet_key)
-            
         encrypted_fernetkey = global_fernet.encrypt(fernet_key)
-        with open(f"{username}encrypted__fernet_key.pem", "wb") as f:
-            f.write(encrypted_fernetkey)
-            
 
         encrypted_username = fernet.encrypt(username.encode())
         encrypted_role = fernet.encrypt(role.encode())
         cursor.execute("INSERT INTO users (username, rfid_uid, role, image) VALUES (?, ?, ?, ?)",
                     (encrypted_username, rfid_uid, encrypted_role, encrypted_image))
         conn.commit()
-        return "success"
+        return "success" , encrypted_fernetkey.decode("utf-8")
     except sqlite3.IntegrityError:
         print("RFID ist bereits vorhanden.")
     except FileNotFoundError:
@@ -137,7 +132,7 @@ def get_user_by_rfid(rfid_uid, fernet_key):
 def get_access_logs(date):
     conn, cursor = get_db_connection()
     cursor.execute('''
-        SELECT access_logs.log_id, access_logs.user_id, users.rfid_uid, access_logs.access_time
+        SELECT access_logs.log_id, access_logs.user_id, users.rfid_uid, access_logs.access_time, access_logs.position
         FROM access_logs
         JOIN users ON access_logs.user_id = users.id
         WHERE DATE(access_logs.access_time) = ?
@@ -150,12 +145,27 @@ def get_access_logs(date):
             'timestamp': log[3],
             'log_entry': log[0],
             'user_id': log[1],
-            'rfid_uid': log[2]
+            'rfid_uid': log[2],
+            'position': log[4]
         }
         log_list.append(log_dict)
     
     return log_list
-    
+ 
+ 
+def user_exists_by_rfid(rfid):
+    conn, cursor = get_db_connection()
+    cursor.execute("SELECT id FROM users WHERE rfid_uid = ?", (rfid,))
+    user = cursor.fetchone()
+    conn.close()
+    return user is not None   
+
+def db_check_entity_id(entity_id):
+    conn, cursor = get_db_connection()
+    cursor.execute("SELECT EXISTS(SELECT 1 FROM devices WHERE entity_id = ?)", (entity_id,))
+    exists = cursor.fetchone()[0]
+    conn.close()
+    return bool(exists)
 
 def get_devices(location):
     conn, cursor = get_db_connection()
@@ -178,7 +188,16 @@ def get_devices(location):
 
 def db_add_device(actor_domain, service, entity_id, device_position):
     conn, cursor = get_db_connection()
-    cursor.execute("INSERT INTO devices (actor_domain, service, entity_id, device_position) VALUES (?, ?, ?, ?)", (actor_domain, service, entity_id, device_position))
+    cursor.execute("""
+        INSERT INTO devices (actor_domain, service, entity_id, device_position)
+        VALUES (?, ?, ?, ?)
+    """, (actor_domain, service, entity_id, device_position))
+    conn.commit()
+    conn.close()
+
+def db_delete_device(device_position):
+    conn, cursor = get_db_connection()
+    cursor.execute("DELETE FROM devices WHERE device_position = ?", (device_position,))
     conn.commit()
     conn.close()
 
@@ -196,9 +215,9 @@ def delete_logs_from_db(date):
     conn.commit()
     conn.close()
 
-def log_access(user_id):
+def log_access(user_id, position):
     conn, cursor = get_db_connection()
-    cursor.execute("INSERT INTO access_logs (user_id) VALUES (?)", (user_id,))
+    cursor.execute("INSERT INTO access_logs (user_id,position) VALUES (?,?)", (user_id,position))
     conn.commit()
     conn.close()
 def save_data_to_db(data):

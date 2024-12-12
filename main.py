@@ -1,6 +1,6 @@
 # This file is part of the Project RFID Access contoll .
 # 
-# (c) 2024 Sascha420
+# (c) 2024 SD-Code0
 # 
 # This source file is subject to the MIT license that is bundled
 # with this source code in the file LICENSE.
@@ -9,13 +9,13 @@ from werkzeug.security import check_password_hash
 from flask_socketio import SocketIO
 from flask_cors import CORS
 import os
+import subprocess
 import threading
 import web_ui
-import signal
 import sqlite3
 from espdata import start_tcp_server
 from web_ui import mainpage
-from db_manager import add_user,delete_user_by_rfid,get_users,get_access_logs,delete_logs_from_db,create_tables,get_devices_by_pos,db_add_device
+from db_manager import add_user,delete_user_by_rfid,get_users,get_access_logs,delete_logs_from_db,create_tables,get_devices_by_pos,db_add_device,user_exists_by_rfid,db_delete_device,db_check_entity_id
 create_tables()
 
 
@@ -34,9 +34,7 @@ tcp_thread.start()
 mainpage()
 
 def shutdown_server():
-    os.kill(os.getpid(), signal.SIGINT)
-
-
+    os._exit(0)
 
 
 app = Flask(__name__)
@@ -96,8 +94,9 @@ def add_user_route():
         else:
             file_path = None
         
-        add_user(username, rfid, role, file_path)
-        return jsonify({"status": "success", "username": username, "rfid": rfid, "role": role})
+        status,enc_key = add_user(username, rfid, role, file_path)
+        if status == 'success':
+            return jsonify({"status": "success", "username": username, "rfid": rfid, "role": role, "encrypted_fernet_key": enc_key})
     else:
         return redirect(url_for('login'))
 
@@ -125,11 +124,26 @@ def show_users():
     else:
         return redirect(url_for('login'))
 
+
+@app.route('/check_logs', methods=['POST'])
+def check_logs():
+    log_date = request.form.get('log_date', '')
+    logs = get_access_logs(log_date)
+    exists = len(logs) > 0
+    return jsonify({'exists': exists})
+
+@app.route('/check_user', methods=['POST'])
+def check_user():
+    rfid = request.form.get('rfid', '')
+    exists = user_exists_by_rfid(rfid)
+    return jsonify({'exists': exists})
+
 @app.route('/get_logs', methods=['POST'])
 def get_logs():
     if 'logged_in' in session:
         log_date = request.form['log_date']
         logs = get_access_logs(log_date)
+        print(logs)
         return jsonify(logs)
     else:
         return redirect(url_for('login'))
@@ -147,24 +161,63 @@ def delete_logs():
 def shutdown():
     if 'logged_in' in session:
         shutdown_server()
+        os.kill(os.getpid(), 9)
         return 'Server shutting down...'
     else:
         return redirect(url_for('login'))
+
+@app.route('/restart', methods=['POST'])
+def restart_server():
+    if 'logged_in' in session:
+        subprocess.Popen(["python", "main.py"])
+        shutdown_server()
+        
+    return "Server wird neu gestartet", 200
 
 
 
 @app.route('/add_device', methods=['POST'])
 def add_device():
-    actor_domain = request.form.get('actor_domain')
-    service = request.form.get('service')
-    entity_id = request.form.get('entity_id')
-    device_position = request.form.get('device_position')
+    if 'logged_in' in session:
+        data = request.get_json()
+        actor_domain = data.get('actor_domain')
+        service = data.get('service')
+        entity_id = data.get('entity_id')
+        device_position = data.get('device_position')
 
-    if not all([actor_domain, service, entity_id, device_position]):
-        return jsonify({'status': 'error', 'message': 'Alle Felder sind erforderlich'}), 400
+        if not all([actor_domain, service, entity_id, device_position]):
+            return jsonify({"status": "error", "message": "Alle Felder müssen ausgefüllt sein."}), 400
+
+            # Überprüfen, ob die Entity ID bereits existiert
+        if db_check_entity_id(entity_id):
+            return jsonify({"status": "error", "message": "Entity ID existiert bereits."}), 409
+
+
+        try:
+            db_add_device(actor_domain, service, entity_id, device_position)
+            return jsonify({
+                "status": "success",
+                "actor_domain": actor_domain,
+                "service": service,
+                "entity_id": entity_id,
+                "device_position": device_position
+            })
+        except sqlite3.IntegrityError as e:
+                return jsonify({"status": "error", "message": "Entity ID existiert bereits."}), 409
+        except Exception as e:
+            return jsonify({"status": "error", "message": str(e)}), 500
     else:
-        db_add_device(actor_domain, service, entity_id, device_position)
-        return jsonify({'status': 'success', 'message': 'Gerät hinzugefügt'})
+        return jsonify({"status": "error", "message": "Nicht authentifiziert"}), 401
+
+
+@app.route('/delete_devices_by_position', methods=['POST'])
+def db_devices_by_position():
+    if 'logged_in' not in session:
+        return jsonify({"status": "error", "message": "Not logged in"}), 401
+
+    device_position = request.form.get('device_position', '')
+    db_delete_device(device_position)
+    return jsonify({"status": "success", "position": device_position})
 
 @app.route('/get_devices', methods=['GET'])
 def get_devices():
@@ -188,4 +241,5 @@ def get_devices():
         print("Fehler beim Abrufen der Geräte:", str(e))  # Debug
         return jsonify({'status': 'error', 'message': str(e)}), 500
 if __name__ == '__main__':
+    app.secret_key = 'super_secret_key'
     socketio.run(app, host='127.0.0.1', port=5001, debug=False)

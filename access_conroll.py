@@ -1,6 +1,6 @@
 # This file is part of the Project RFID Access contoll .
 # 
-# (c) 2024 Sascha420
+# (c) 2024 SD-Code0
 # 
 # This source file is subject to the MIT license that is bundled
 # with this source code in the file LICENSE.
@@ -74,7 +74,7 @@ def access_door(rfid_uid,fernet_key,position):
                 'status': 'Success'
             })
             threading.Thread(target=open_door(device_data), daemon=True).start()
-            log_access(user[0])
+            log_access(user[0],device_pos)
             if response.status_code == 200:
                 print("Benutzerdaten erfolgreich an die Web-UI übergeben")
                 threading.Thread(target=default_screen, daemon=True).start()

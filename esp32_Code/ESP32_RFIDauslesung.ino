@@ -2,19 +2,23 @@
 #include <MFRC522.h>
 #include <WiFi.h>
 
-#define SS_PIN 21
-#define RST_PIN 14
+#define SS_PIN 21 //bei bedarf anpassen
+#define RST_PIN 14 //bei bedarf anpassen
 
-MFRC522 mfrc522(SS_PIN, RST_PIN);  // Create MFRC522 instance
+MFRC522 mfrc522(SS_PIN, RST_PIN);  
 
-const char* ssid = "H304";
-const char* password = "VTEa26-2426";
-const char* host = "192.168.188.22";
-const uint16_t port = 12345;
-const char* pos = "eingang";
+// Bitte ändere volgende werte ensprechend mit ausnahme des ports
 
-String RFID = ""; // RFID-Nummer
-String fullData = ""; // Gesamte gelesene Daten
+const char* ssid = "H304"; // W-lan Name
+const char* password = "VTEa26-2426"; // W-lan Passwort
+const char* host = "192.168.188.22"; // IP des python-Servers
+const uint16_t port = 12345; // unverendert lassen
+const char* pos = "eingang"; // Position
+
+
+
+String RFID = ""; // nicht verändern
+String fullData = ""; // nicht verändern
 
 void setup() {
   Serial.begin(115200);
@@ -51,9 +55,8 @@ void loop() {
   byte currentBlock = startBlock;
   fullData = "";
 
-  // Lesen von bis zu 12 Blöcken, Schlüsselblöcke überspringen
+
   for (byte i = 0; i < 12; i++) {
-    // Prüfen, ob der aktuelle Block ein Schlüsselblock ist, und überspringen
     if ((currentBlock + 1) % 4 == 0) {
       currentBlock++;  // Überspringe Schlüsselblock
     }

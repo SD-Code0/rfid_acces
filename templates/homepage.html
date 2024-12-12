@@ -3,169 +3,774 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Benutzer- und Log-Verwaltung</title>
+    <title>Verwaltung</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
+            background: #f5f5f5;
             margin: 0;
             padding: 0;
+            color: #333;
         }
-        .container {
-            width: 80%;
-            margin: auto;
-            overflow: hidden;
-        }
+
         .navbar {
-            background-color: #333;
+            background: #333;
             color: #fff;
-            padding: 15px 0;
+            padding: 10px 0;
             text-align: center;
         }
+
         .navbar a {
             color: #fff;
-            padding: 14px 20px;
+            padding: 10px 20px;
             text-decoration: none;
             display: inline-block;
+            transition: background 0.3s, color 0.3s;
+            font-weight: bold;
+            font-size: 14px;
         }
-        .navbar a:hover {
-            background-color: #575757;
+
+        .navbar a:hover, .navbar a.active {
+            background: #455A64;
+            border-radius: 4px;
         }
+
+        .container {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
         .content {
+            background: #fff;
             padding: 20px;
-            background-color: #fff;
-            margin-top: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
         }
+
         .tab-content {
             display: none;
         }
+
         .tab-content.active {
             display: block;
         }
+
+        h2, h3 {
+            margin-top: 0;
+            font-weight: 600;
+            color: #333;
+        }
+
         form div {
             margin-bottom: 15px;
         }
+
         label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
+            color: #555;
         }
-        input[type="text"], input[type="date"], input[type="file"], input[type="password"] {
-            width: 50%;
-            padding: 8px;
+
+        input[type="text"], 
+        input[type="date"], 
+        input[type="file"], 
+        input[type="password"] {
+            width: 100%;
+            max-width: 400px;
+            padding: 10px;
             box-sizing: border-box;
             border: 1px solid #ccc;
             border-radius: 4px;
+            transition: border-color 0.3s;
+            background: #fafafa;
         }
-        input[type="submit"] {
-            background-color: #4CAF50;
+
+        input[type="text"]:focus,
+        input[type="date"]:focus, 
+        input[type="file"]:focus, 
+        input[type="password"]:focus {
+            border-color: #607d8b;
+            outline: none;
+        }
+
+        input[type="submit"], button {
+            background: #607d8b;
             color: white;
             padding: 10px 20px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
         }
-        input[type="submit"]:hover {
-            background-color: #45a049;
+
+        input[type="submit"]:hover, button:hover {
+            background: #546e7a;
+        }
+
+        #device_list div, #user_list div, #log_list div {
+            background: #eee;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        #delete_logs_message {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .tabs-info {
+            font-size: 12px;
+            color: #777;
+            margin-bottom: 10px;
+        }
+
+        /* Neue Klasse für den Fernet-Key */
+        .fernet-key {
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+            background: #f0f0f0;
+            padding: 5px;
+            border-radius: 4px;
+            display: inline-block;
+            max-width: 100%;
+            margin-top: 5px;
+        }
+
+        /* Modale Overlays */
+        .modal-overlay {
+            position: fixed;
+            top: 0; 
+            left: 0; 
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-box {
+            background: #fff;
+            border-radius: 6px;
+            padding: 20px;
+            max-width: 300px;
+            width: 100%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        .modal-box h3 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        .modal-buttons {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .modal-buttons button {
+            flex: 1;
+            margin: 0 5px;
+        }
+
+        /* Fehler- und Erfolgsmeldungen */
+        .error-message {
+            color: red;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .success-message {
+            color: green;
+            font-size: 14px;
+            margin-top: 5px;
         }
     </style>
     <script>
+        let addUserData = null;
+        let deleteUserData = null;
+        let addedUserInfo = null;
+        let deletedUserRfid = null;
+        let logDateToShow = null;
+        let logDateToDelete = null;
+
+        // Neu für Geräte löschen
+        let deleteDevicePosition = null;
+
         function openTab(event, tabName) {
-            var i, tabContent, tabLinks;
-            tabContent = document.getElementsByClassName("tab-content");
-            for (i = 0; i < tabContent.length; i++) {
-                tabContent[i].style.display = "none";
+            event.preventDefault();
+            var tabContent = document.getElementsByClassName("tab-content");
+            for (var i = 0; i < tabContent.length; i++) {
+                tabContent[i].classList.remove("active");
             }
-            tabLinks = document.getElementsByClassName("tab-link");
-            for (i = 0; i < tabLinks.length; i++) {
-                tabLinks[i].className = tabLinks[i].className.replace(" active", "");
+            var tabLinks = document.getElementsByClassName("tab-link");
+            for (var j = 0; j < tabLinks.length; j++) {
+                tabLinks[j].classList.remove("active");
             }
-            document.getElementById(tabName).style.display = "block";
-            event.currentTarget.className += " active";
+            document.getElementById(tabName).classList.add("active");
+            event.currentTarget.classList.add("active");
+        }
+
+        function openSubTab(event, parentId, subTabId) {
+            event.preventDefault();
+            var parent = document.getElementById(parentId);
+            var subTabContents = parent.querySelectorAll('.tab-content');
+            subTabContents.forEach(function(content) {
+                content.classList.remove('active');
+            });
+            document.getElementById(subTabId).classList.add('active');
+        }
+
+        function fetchUsers() {
+            fetch('/show_users')
+                .then(response => response.json())
+                .then(users => {
+                    users.sort((a, b) => a.id - b.id);
+                    const userList = document.getElementById('user_list');
+                    userList.innerHTML = '';
+                    users.forEach(user => {
+                        const userItem = document.createElement('div');
+                        userItem.textContent = `ID: ${user.id}, RFID: ${user.rfid_uid}`;
+                        userList.appendChild(userItem);
+                    });
+                })
+                .catch(error => console.error('Error fetching users:', error));
+        }
+
+        function addUser() {
+            fetch('/add_user', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(addUserData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    addedUserInfo = `Benutzername: ${data.username}<br>` +
+                                    `RFID: ${data.rfid}<br>` +
+                                    `Rolle: ${data.role}<br><br>` +
+                                    `<strong>Verschlüsselter Fernet-Key:</strong><br>` +
+                                    `<span class="fernet-key">${data.encrypted_fernet_key}</span>`;
+                    showUserAddSuccessModal();
+                    fetchUsers();
+                    document.getElementById('addUserForm').reset();
+                } else {
+                    alert('Fehler beim Hinzufügen des Benutzers: ' + data.message);
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert('Fehler beim Hinzufügen des Benutzers.');
+            });
+        }
+
+        function showUserAddSuccessModal() {
+            document.getElementById('userAddSuccessInfo').innerHTML = addedUserInfo;
+            document.getElementById('userAddSuccessModalOverlay').classList.add('active');
+        }
+
+        function closeUserAddSuccessModal() {
+            document.getElementById('userAddSuccessModalOverlay').classList.remove('active');
+        }
+
+        function showUserDeleteModal() {
+            document.getElementById('userDeleteModalOverlay').classList.add('active');
+        }
+
+        function closeUserDeleteModal() {
+            document.getElementById('userDeleteModalOverlay').classList.remove('active');
+        }
+
+        function confirmDeleteUser() {
+            closeUserDeleteModal();
+            fetch('/delete_user', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(deleteUserData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    deletedUserRfid = data.rfid;
+                    showUserDeleteSuccessModal();
+                    fetchUsers();
+                    document.getElementById('deleteUserForm').reset();
+                } else {
+                    alert('Fehler beim Entfernen des Benutzers: ' + data.message);
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert('Fehler beim Entfernen des Benutzers.');
+            });
+        }
+
+        function showUserNotFoundModal() {
+            document.getElementById('userNotFoundModalOverlay').classList.add('active');
+        }
+
+        function closeUserNotFoundModal() {
+            document.getElementById('userNotFoundModalOverlay').classList.remove('active');
+        }
+
+        function showUserDeleteSuccessModal() {
+            document.getElementById('userDeleteSuccessInfo').innerHTML = "RFID: " + deletedUserRfid;
+            document.getElementById('userDeleteSuccessModalOverlay').classList.add('active');
+        }
+
+        function closeUserDeleteSuccessModal() {
+            document.getElementById('userDeleteSuccessModalOverlay').classList.remove('active');
+        }
+
+        function showLogoutModal() {
+            document.getElementById('logoutModalOverlay').classList.add('active');
+        }
+
+        function closeLogoutModal() {
+            document.getElementById('logoutModalOverlay').classList.remove('active');
+        }
+
+        function confirmLogout() {
+            closeLogoutModal();
+            window.location.href = "{{ url_for('logout') }}";
+        }
+
+        function showShutdownModal() {
+            document.getElementById('shutdownModalOverlay').classList.add('active');
+        }
+
+        function closeShutdownModal() {
+            document.getElementById('shutdownModalOverlay').classList.remove('active');
+        }
+
+        function confirmShutdown() {
+            closeShutdownModal();
+            fetch('/shutdown', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            })
+            .then(response => response.text())
+            .then(message => {
+                alert(message);
+            })
+            .catch(error => console.error('Error shutting down server:', error));
+        }
+
+        function showRestartModal() {
+            document.getElementById('restartModalOverlay').classList.add('active');
+        }
+
+        function closeRestartModal() {
+            document.getElementById('restartModalOverlay').classList.remove('active');
+        }
+
+        function confirmRestart() {
+            closeRestartModal();
+            fetch('/restart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            })
+            .then(response => response.text())
+            .then(message => {
+                alert(message);
+            })
+            .catch(error => console.error('Error restarting server:', error));
+        }
+
+        // Geräte hinzufügen und löschen
+        document.addEventListener('DOMContentLoaded', function() {
+            // Benutzer hinzufügen
+            document.getElementById('addUserForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const formData = new FormData(event.target);
+                addUserData = {
+                    username: formData.get('username'),
+                    rfid: formData.get('rfid'),
+                    role: formData.get('role'),
+                    file: formData.get('filePath')
+                };
+                addUser();
+            });
+
+            // Benutzer löschen
+            document.getElementById('deleteUserForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const formData = new FormData(event.target);
+                const rfidToDelete = formData.get('rfid_delete');
+                deleteUserData = { rfid: rfidToDelete };
+
+                fetch('/check_user', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({ rfid: rfidToDelete })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.exists) {
+                        showUserDeleteModal();
+                    } else {
+                        showUserNotFoundModal();
+                    }
+                })
+                .catch(error => {
+                    console.error('Fehler bei der Nutzerprüfung:', error);
+                    alert('Fehler bei der Prüfung des Benutzers.');
+                });
+            });
+
+            // Logs anzeigen
+            document.getElementById('getLogsForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const formData = new FormData(event.target);
+                logDateToShow = formData.get('log_date');
+                // Zuerst prüfen ob Logs existieren
+                fetch('/check_logs', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({ log_date: logDateToShow })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.exists) {
+                        fetchLogs(logDateToShow);
+                    } else {
+                        showLogsNotFoundModal();
+                    }
+                })
+                .catch(error => {
+                    console.error('Fehler bei der Log-Prüfung:', error);
+                    alert('Fehler bei der Prüfung der Logs.');
+                });
+            });
+
+            // Logs löschen
+            document.getElementById('deleteLogsForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const formData = new FormData(event.target);
+                logDateToDelete = formData.get('log_date_delete');
+                // Check ob Logs existieren
+                fetch('/check_logs', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({ log_date: logDateToDelete })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.exists) {
+                        showLogsDeleteModal();
+                    } else {
+                        showLogsNotFoundModal();
+                    }
+                })
+                .catch(error => {
+                    console.error('Fehler bei der Log-Prüfung:', error);
+                    alert('Fehler bei der Prüfung der Logs.');
+                });
+            });
+
+            // Geräte hinzufügen
+            document.getElementById('addDeviceForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const formData = new FormData(event.target);
+                const addDeviceData = {
+                    actor_domain: formData.get('actor_domain'),
+                    service: formData.get('service'),
+                    entity_id: formData.get('entity_id'),
+                    device_position: formData.get('device_position')
+                };
+
+                // Direkter Versuch, das Gerät hinzuzufügen
+                fetch('/add_device', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(addDeviceData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        const deviceInfo = `
+                            Actor Domain: ${data.actor_domain}<br>
+                            Service: ${data.service}<br>
+                            Entity ID: ${data.entity_id}<br>
+                            Position: ${data.device_position}
+                        `;
+                        showDeviceAddSuccessModal(deviceInfo);
+                        fetchDevices();
+                        event.target.reset();
+                        clearEntityIdError();
+                    } else if (data.status === "error" && data.message === "Entity ID existiert bereits.") {
+                        showEntityIdExistsError();
+                    } else {
+                        alert("Fehler beim Hinzufügen des Geräts: " + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Fehler beim Hinzufügen des Geräts.');
+                });
+            });
+
+            // Geräte löschen
+            document.getElementById('deleteDevicesForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const formData = new FormData(event.target);
+                deleteDevicePosition = formData.get('device_position_delete');
+                showDevicesDeleteModal();
+            });
+        });
+
+        function fetchDevices() {
+            fetch('/get_devices')
+                .then(response => response.json())
+                .then(devices => {
+                    const deviceList = document.getElementById('device_list');
+                    deviceList.innerHTML = '';
+                    devices.forEach(device => {
+                        const deviceItem = document.createElement('div');
+                        deviceItem.textContent = `
+                            ID: ${device.device_id}, 
+                            Actor Domain: ${device.actor_domain}, 
+                            Service: ${device.service}, 
+                            Entity ID: ${device.entity_id}, 
+                            Position: ${device.device_position}
+                        `;
+                        deviceList.appendChild(deviceItem);
+                    });
+                })
+                .catch(error => console.error('Fehler beim Abrufen der Geräte:', error));
+        }
+
+        function fetchLogs(date) {
+            fetch('/get_logs', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({ log_date: date })
+            })
+            .then(response => response.json())
+            .then(logs => {
+                const logList = document.getElementById('log_list');
+                logList.innerHTML = '';
+                logs.forEach(log => {
+                    const logItem = document.createElement('div');
+                    logItem.textContent = `Timestamp: ${log.timestamp}, Log ID: ${log.log_entry}, User ID: ${log.user_id}, RFID: ${log.rfid_uid}, Position: ${log.position}`;
+                    logList.appendChild(logItem);
+                });
+            })
+            .catch(error => console.error('Error fetching logs:', error));
+        }
+
+        function confirmDeleteLogs() {
+            closeLogsDeleteModal();
+            fetch('/delete_logs', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({ log_date: logDateToDelete })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    showLogsDeleteSuccessModal();
+                    document.getElementById('deleteLogsForm').reset();
+                } else {
+                    alert("Fehler beim Löschen der Logs: " + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting logs:', error);
+                alert('Fehler beim Löschen der Logs.');
+            });
+        }
+
+        function showLogsDeleteModal() {
+            document.getElementById('logsDeleteModalOverlay').classList.add('active');
+        }
+        function closeLogsDeleteModal() {
+            document.getElementById('logsDeleteModalOverlay').classList.remove('active');
+        }
+
+        function showLogsDeleteSuccessModal() {
+            document.getElementById('logsDeleteSuccessModalOverlay').classList.add('active');
+        }
+        function closeLogsDeleteSuccessModal() {
+            document.getElementById('logsDeleteSuccessModalOverlay').classList.remove('active');
+        }
+
+        function showLogsNotFoundModal() {
+            document.getElementById('logsNotFoundModalOverlay').classList.add('active');
+        }
+        function closeLogsNotFoundModal() {
+            document.getElementById('logsNotFoundModalOverlay').classList.remove('active');
+        }
+
+        // Geräte löschen Funktionen
+        function showDevicesDeleteModal() {
+            document.getElementById('devicesDeleteModalOverlay').classList.add('active');
+        }
+
+        function closeDevicesDeleteModal() {
+            document.getElementById('devicesDeleteModalOverlay').classList.remove('active');
+        }
+
+        function confirmDeleteDevices() {
+            closeDevicesDeleteModal();
+            fetch('/delete_devices_by_position', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({ device_position: deleteDevicePosition })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    showDevicesDeleteSuccessModal();
+                    fetchDevices();
+                    document.getElementById('deleteDevicesForm').reset();
+                } else {
+                    alert("Fehler beim Löschen der Geräte: " + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting devices:', error);
+                alert('Fehler beim Löschen der Geräte.');
+            });
+        }
+
+        function showDevicesDeleteSuccessModal() {
+            document.getElementById('devicesDeleteSuccessInfo').innerHTML = `Geräte an Position <strong>${deleteDevicePosition}</strong> wurden erfolgreich gelöscht.`;
+            document.getElementById('devicesDeleteSuccessModalOverlay').classList.add('active');
+        }
+
+        function closeDevicesDeleteSuccessModal() {
+            document.getElementById('devicesDeleteSuccessModalOverlay').classList.remove('active');
+        }
+
+        // Gerät hinzufügen Erfolgsmeldung
+        function showDeviceAddSuccessModal(info) {
+            document.getElementById('deviceAddSuccessInfo').innerHTML = info;
+            document.getElementById('deviceAddSuccessModalOverlay').classList.add('active');
+        }
+
+        function closeDeviceAddSuccessModal() {
+            document.getElementById('deviceAddSuccessModalOverlay').classList.remove('active');
+        }
+
+        // Fehlermeldung für existierende Entity ID anzeigen
+        function showEntityIdExistsError() {
+            const errorDiv = document.getElementById('entityIdError');
+            errorDiv.textContent = 'Entity ID existiert bereits.';
+            errorDiv.classList.add('error-message');
+        }
+
+        // Fehlermeldung für existierende Entity ID löschen
+        function clearEntityIdError() {
+            const errorDiv = document.getElementById('entityIdError');
+            errorDiv.textContent = '';
+            errorDiv.classList.remove('error-message');
         }
     </script>
 </head>
 <body>
 <div class="navbar">
-    {% if session.logged_in %}
-        <a href="#" class="tab-link" onclick="openTab(event, 'Tab1')">Benutzer hinzufügen</a>
-        <a href="#" class="tab-link" onclick="openTab(event, 'Tab2')">Benutzer löschen</a>
-        <a href="#" class="tab-link" onclick="openTab(event, 'Tab3')">Benutzer anzeigen</a>
-        <a href="#" class="tab-link" onclick="openTab(event, 'Tab4')">Logs abrufen</a>
-        <a href="#" class="tab-link" onclick="openTab(event, 'Tab5')">Logs löschen</a>
+    {% if session.get('logged_in') %}
+        <a href="#" class="tab-link" onclick="openTab(event, 'TabUser')">Benutzerverwaltung</a>
+        <a href="#" class="tab-link" onclick="openTab(event, 'TabLogs')">Logs</a>
         <a href="#" class="tab-link" onclick="openTab(event, 'TabDevices')">Geräte</a>
-        <a href="#" class="tab-link" onclick="openTab(event, 'Tab6')">Server herunterfahren</a>
-        <a href="/logout" class="tab-link">Logout</a>
+        <a href="#" class="tab-link" onclick="openTab(event, 'TabShutdown')">Server</a>
+        <a href="#" class="tab-link" onclick="showLogoutModal()">Logout</a>
+    {% else %}
+        <a href="#" class="tab-link active" onclick="openTab(event, 'Login')">Login</a>
     {% endif %}
 </div>
+
 <div class="container">
-    {% if not session.logged_in %}
-        <div id="Login" class="content tab-content active">
-            <h2>Admin Login</h2>
-            <form action="/login" method="post">
-                <div>
-                    <label for="username">Benutzername:</label>
-                    <input type="text" id="username" name="username" required>
-                </div>
-                <div>
-                    <label for="password">Passwort:</label>
-                    <input type="password" id="password" name="password" required>
-                </div>
-                <div>
-                    <input type="submit" value="Anmelden">
-                </div>
-            </form>
-        </div>
-    {% else %}
-    <div id="TabDevices" class="content tab-content">
-        <h2>Geräte verwalten</h2>
-    
-        <h3>Gerät hinzufügen</h3>
-        <form id="addDeviceForm">
+    <div id="Login" class="content tab-content {% if not session.get('logged_in') %}active{% endif %}">
+        <h2>Admin Login</h2>
+        <form action="{{ url_for('login') }}" method="post">
             <div>
-                <label for="actor_domain">Actor Domain:</label>
-                <input type="text" id="actor_domain" name="actor_domain" required>
+                <label for="username">Benutzername:</label>
+                <input type="text" id="username" name="username" required>
             </div>
             <div>
-                <label for="service">Service:</label>
-                <input type="text" id="service" name="service" required>
+                <label for="password">Passwort:</label>
+                <input type="password" id="password" name="password" required>
             </div>
             <div>
-                <label for="entity_id">Entity ID:</label>
-                <input type="text" id="entity_id" name="entity_id" required>
+                <input type="submit" value="Anmelden">
             </div>
-            <div>
-                <label for="device_position">Device Position:</label>
-                <input type="text" id="device_position" name="device_position" required>
-            </div>
-            <div>
-                <input type="submit" value="Gerät hinzufügen">
-            </div>
+            {% with messages = get_flashed_messages() %}
+              {% if messages %}
+                 <div style="color:red;">
+                     {% for message in messages %}
+                        {{ message }}<br>
+                     {% endfor %}
+                 </div>
+              {% endif %}
+            {% endwith %}
         </form>
-    
-        <h3>Gespeicherte Geräte</h3>
-        <button id="listDevicesButton">Geräte auflisten</button>
-        <div id="device_list"></div>
     </div>
-        <div id="Tab1" class="content tab-content active">
-            <h2>Benutzer hinzufügen</h2>
+
+    {% if session.get('logged_in') %}
+    <!-- Benutzerverwaltung -->
+    <div id="TabUser" class="content tab-content">
+        <h2>Benutzerverwaltung</h2>
+        <div class="tabs-info">Fügen Sie Benutzer hinzu, löschen Sie welche oder zeigen Sie die Liste an.</div>
+        <button onclick="openSubTab(event, 'TabUser', 'UserAdd')">Benutzer hinzufügen</button>
+        <button onclick="openSubTab(event, 'TabUser', 'UserDelete')">Benutzer löschen</button>
+        <button onclick="openSubTab(event, 'TabUser', 'UserShow')">Benutzer anzeigen</button>
+
+        <div id="UserAdd" class="tab-content active" style="margin-top:20px;">
+            <h3>Benutzer hinzufügen</h3>
             <form id="addUserForm">
                 <div>
-                    <label for="username">Benutzername:</label>
-                    <input type="text" id="username" name="username" required>
+                    <label for="username_add">Benutzername:</label>
+                    <input type="text" id="username_add" name="username" required>
                 </div>
                 <div>
-                    <label for="rfid">RFID:</label>
-                    <input type="text" id="rfid" name="rfid" required>
+                    <label for="rfid_add">RFID:</label>
+                    <input type="text" id="rfid_add" name="rfid" required>
                 </div>
                 <div>
-                    <label for="role">Rolle:</label>
-                    <input type="text" id="role" name="role" required>
+                    <label for="role_add">Rolle:</label>
+                    <input type="text" id="role_add" name="role" required>
                 </div>
                 <div>
-                    <label for="filePath">Bildpfad:</label>
+                    <label for="filePath">(optional) Bildpfad:</label>
                     <input type="file" id="filePath" name="filePath">
                 </div>
                 <div>
@@ -173,96 +778,9 @@
                 </div>
             </form>
         </div>
-        <script>
-            document.getElementById('addDeviceForm').addEventListener('submit', function(event) {
-                event.preventDefault();
-                const formData = new FormData(event.target);
-        
-                fetch('/add_device', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        alert('Gerät erfolgreich hinzugefügt');
-                        fetchDevices();
-                    } else {
-                        alert('Fehler: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Fehler beim Hinzufügen:', error);
-                });
-            });
-        
-            document.getElementById('listDevicesButton').addEventListener('click', function() {
-                fetchDevices();
-            });
-        
-            function fetchDevices() {
-                fetch('/get_devices')
-                    .then(response => response.json())
-                    .then(devices => {
-                        const deviceList = document.getElementById('device_list');
-                        deviceList.innerHTML = '';
-                        devices.forEach(device => {
-                            const deviceItem = document.createElement('div');
-                            deviceItem.textContent = `
-                                ID: ${device.device_id}, 
-                                Actor Domain: ${device.actor_domain}, 
-                                Service: ${device.service}, 
-                                Entity ID: ${device.entity_id}, 
-                                Position: ${device.device_position}
-                            `;
-                            deviceList.appendChild(deviceItem);
-                        });
-                    })
-                    .catch(error => console.error('Fehler beim Abrufen der Geräte:', error));
-            }
-        
-            document.addEventListener('DOMContentLoaded', function() {
-                fetchDevices();
-            });
-        </script>
-        <script>
-            document.getElementById('addUserForm').addEventListener('submit', function(event) {
-                event.preventDefault();
-                const formData = new FormData(event.target);
-                const data = {
-                    username: formData.get('username'),
-                    rfid: formData.get('rfid'),
-                    role: formData.get('role'),
-                    file: formData.get('filePath')
-                };
 
-                fetch('/add_user', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === "success") {
-                        alert('Benutzer erfolgreich hinzugefügt:\n' +
-                              'Benutzername: ' + data.username + '\n' +
-                              'RFID: ' + data.rfid + '\n' +
-                              'Rolle: ' + data.role);
-                              fetchUsers();
-                    } else {
-                        alert('Fehler beim Hinzufügen des Benutzers.');
-                    }
-                })
-                .catch((error) => {
-                    console.error('Error:', error);
-                    alert('Fehler beim Hinzufügen des Benutzers.');
-                });
-            });
-        </script>
-        <div id="Tab2" class="content tab-content">
-            <h2>Benutzer löschen</h2>
+        <div id="UserDelete" class="tab-content" style="margin-top:20px;">
+            <h3>Benutzer löschen</h3>
             <form id="deleteUserForm">
                 <div>
                     <label for="rfid_delete">RFID:</label>
@@ -273,68 +791,23 @@
                 </div>
             </form>
         </div>
-        <script>
-            document.getElementById('deleteUserForm').addEventListener('submit', function(event) {
-                event.preventDefault();
-                const formData = new FormData(event.target);
-                const data = {
-                    rfid: formData.get('rfid_delete')
-                };
 
-                fetch('/delete_user', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === "success") {
-                        alert('Benutzer erfolgreich entfernt:\n' +
-                              'RFID: ' + data.rfid);
-                              fetchUsers();
-                    } else {
-                        alert('Fehler beim Entfernen des Benutzers.');
-                    }
-                })
-                .catch((error) => {
-                    console.error('Error:', error);
-                    alert('Fehler beim Entfernen des Benutzers.');
-                });
-            });
-        </script>
-        <div id="Tab3" class="content tab-content">
-            <h2>Benutzer anzeigen</h2>
-            <div id="user_list">
-                <!-- Benutzerliste wird hier angezeigt -->
-            </div>
+        <div id="UserShow" class="tab-content" style="margin-top:20px;">
+            <h3>Benutzer anzeigen</h3>
+            <button onclick="fetchUsers()">Benutzer aktualisieren</button>
+            <div id="user_list" style="margin-top:10px;"></div>
         </div>
-        
-        <script>
-            function fetchUsers() {
-                fetch('/show_users')
-                    .then(response => response.json())
-                    .then(users => {
-                        // Sortieren der Benutzerliste nach ID
-                        users.sort((a, b) => a.id - b.id);
-                        const userList = document.getElementById('user_list');
-                        userList.innerHTML = '';
-                        users.forEach(user => {
-                            const userItem = document.createElement('div');
-                            userItem.textContent = `ID: ${user.id}, RFID: ${user.rfid_uid}`;
-                            userList.appendChild(userItem);
-                        });
-                    })
-                    .catch(error => console.error('Error fetching users:', error));
-            }
-        
-            document.addEventListener('DOMContentLoaded', function() {
-                fetchUsers();
-            });
-        </script>
-        <div id="Tab4" class="content tab-content">
-            <h2>Logs abrufen</h2>
+    </div>
+
+    <!-- Logs -->
+    <div id="TabLogs" class="content tab-content">
+        <h2>Logs</h2>
+        <div class="tabs-info">Hier können Sie Logs abrufen oder löschen.</div>
+        <button onclick="openSubTab(event, 'TabLogs', 'LogsGet')">Logs abrufen</button>
+        <button onclick="openSubTab(event, 'TabLogs', 'LogsDelete')">Logs löschen</button>
+
+        <div id="LogsGet" class="tab-content active" style="margin-top:20px;">
+            <h3>Logs abrufen</h3>
             <form id="getLogsForm">
                 <div>
                     <label for="log_date">Datum:</label>
@@ -344,39 +817,11 @@
                     <input type="submit" value="Logs abrufen">
                 </div>
             </form>
-            <div id="log_list">
-                <!-- Logliste wird hier angezeigt -->
-            </div>
+            <div id="log_list" style="margin-top:10px;"></div>
         </div>
-        
-        <script>
-            document.getElementById('getLogsForm').addEventListener('submit', function(event) {
-                event.preventDefault();
-                const formData = new FormData(event.target);
-                const logDate = formData.get('log_date');
-        
-                fetch('/get_logs', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: new URLSearchParams({ log_date: logDate })
-                })
-                .then(response => response.json())
-                .then(logs => {
-                    const logList = document.getElementById('log_list');
-                    logList.innerHTML = '';
-                    logs.forEach(log => {
-                        const logItem = document.createElement('div');
-                        logItem.textContent = `Timestamp: ${log.timestamp}, Log ID: ${log.log_entry}, User ID: ${log.user_id} RFID: ${log.rfid_uid}`;
-                        logList.appendChild(logItem);
-                    });
-                })
-                .catch(error => console.error('Error fetching logs:', error));
-            });
-        </script>
-        <div id="Tab5" class="content tab-content">
-            <h2>Logs löschen</h2>
+
+        <div id="LogsDelete" class="tab-content" style="margin-top:20px;">
+            <h3>Logs löschen</h3>
             <form id="deleteLogsForm">
                 <div>
                     <label for="log_date_delete">Datum:</label>
@@ -386,61 +831,234 @@
                     <input type="submit" value="Logs löschen">
                 </div>
             </form>
-            <div id="delete_logs_message"></div>
+            <div id="delete_logs_message" style="margin-top:10px;"></div>
         </div>
-        
-        <script>
-            document.getElementById('deleteLogsForm').addEventListener('submit', function(event) {
-                event.preventDefault();
-                const formData = new FormData(event.target);
-                const logDate = formData.get('log_date_delete');
-        
-                fetch('/delete_logs', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: new URLSearchParams({ log_date: logDate })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    const messageDiv = document.getElementById('delete_logs_message');
-                    if (data.status === "success") {
-                        messageDiv.textContent = data.message;
-                    } else {
-                        messageDiv.textContent = data.message;
-                    }
-                })
-                .catch(error => console.error('Error deleting logs:', error));
-            });
-        </script>
-        <div id="Tab6" class="content tab-content">
-            <h2>Server herunterfahren</h2>
-            <form id="shutdownForm" action="/shutdown" method="post">
+    </div>
+
+    <!-- Geräte -->
+    <div id="TabDevices" class="content tab-content">
+        <h2>Geräteverwaltung</h2>
+        <div class="tabs-info">Fügen Sie Geräte hinzu oder listen/löschen Sie diese auf.</div>
+        <button onclick="openSubTab(event, 'TabDevices', 'DevicesAdd')">Gerät hinzufügen</button>
+        <button onclick="openSubTab(event, 'TabDevices', 'DevicesShow')">Geräte anzeigen</button>
+        <button onclick="openSubTab(event, 'TabDevices', 'DevicesDelete')">Geräte löschen</button>
+
+        <div id="DevicesAdd" class="tab-content active" style="margin-top:20px;">
+            <h3>Gerät hinzufügen</h3>
+            <form id="addDeviceForm">
                 <div>
-                    <input type="submit" value="Server herunterfahren">
+                    <label for="actor_domain">Actor Domain:</label>
+                    <input type="text" id="actor_domain" name="actor_domain" required>
+                </div>
+                <div>
+                    <label for="service">Service:</label>
+                    <input type="text" id="service" name="service" required>
+                </div>
+                <div>
+                    <label for="entity_id">Entity ID:</label>
+                    <input type="text" id="entity_id" name="entity_id" required>
+                </div>
+                <div>
+                    <label for="device_position">Device Position:</label>
+                    <input type="text" id="device_position" name="device_position" required>
+                </div>
+                <div id="entityIdError"></div> <!-- Bereich für Entity ID-Fehlermeldung -->
+                <div>
+                    <input type="submit" value="Gerät hinzufügen">
                 </div>
             </form>
         </div>
-        <script>
-            document.getElementById('shutdownForm').addEventListener('submit', function(event) {
-                event.preventDefault();
-                if (confirm('Bist du sicher, dass du den Server herunterfahren möchtest?')) {
-                    fetch('/shutdown', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded'
-                        }
-                    })
-                    .then(response => response.text())
-                    .then(message => {
-                        alert(message);
-                    })
-                    .catch(error => console.error('Error shutting down server:', error));
-                }
-            });
-        </script>
+
+        <div id="DevicesShow" class="tab-content" style="margin-top:20px;">
+            <h3>Gespeicherte Geräte</h3>
+            <button id="listDevicesButton">Geräte auflisten</button>
+            <div id="device_list" style="margin-top:10px;"></div>
+            <script>
+                document.getElementById('listDevicesButton').addEventListener('click', function() {
+                    fetchDevices();
+                });
+            </script>
+        </div>
+
+        <div id="DevicesDelete" class="tab-content" style="margin-top:20px;">
+            <h3>Geräte löschen</h3>
+            <form id="deleteDevicesForm">
+                <div>
+                    <label for="device_position_delete">Position:</label>
+                    <input type="text" id="device_position_delete" name="device_position_delete" required>
+                </div>
+                <div>
+                    <input type="submit" value="Geräte löschen">
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Server -->
+    <div id="TabShutdown" class="content tab-content">
+        <h2>Server</h2>
+        <div class="tabs-info">Server steuern.</div>
+        <div style="margin-bottom:20px;">
+            <button onclick="showShutdownModal()">Server herunterfahren</button>
+        </div>
+        <div>
+            <button onclick="showRestartModal()">Server neu starten</button>
+        </div>
+    </div>
     {% endif %}
 </div>
+
+<!-- Logout Bestätigung -->
+<div id="logoutModalOverlay" class="modal-overlay">
+    <div class="modal-box">
+        <h3>Abmeldung bestätigen</h3>
+        <p>Möchten Sie sich wirklich abmelden?</p>
+        <div class="modal-buttons">
+            <button onclick="confirmLogout()">Ja</button>
+            <button onclick="closeLogoutModal()">Abbrechen</button>
+        </div>
+    </div>
+</div>
+
+<!-- Shutdown Bestätigung -->
+<div id="shutdownModalOverlay" class="modal-overlay">
+    <div class="modal-box">
+        <h3>Server herunterfahren</h3>
+        <p>Sind Sie sicher, dass Sie den Server herunterfahren möchten?</p>
+        <div class="modal-buttons">
+            <button onclick="confirmShutdown()">Ja</button>
+            <button onclick="closeShutdownModal()">Abbrechen</button>
+        </div>
+    </div>
+</div>
+
+<!-- Restart Bestätigung -->
+<div id="restartModalOverlay" class="modal-overlay">
+    <div class="modal-box">
+        <h3>Server neu starten</h3>
+        <p>Sind Sie sicher, dass Sie den Server neu starten möchten?</p>
+        <div class="modal-buttons">
+            <button onclick="confirmRestart()">Ja</button>
+            <button onclick="closeRestartModal()">Abbrechen</button>
+        </div>
+    </div>
+</div>
+
+<!-- Benutzer hinzufügen Erfolg -->
+<div id="userAddSuccessModalOverlay" class="modal-overlay">
+    <div class="modal-box">
+        <h3>Benutzer hinzugefügt</h3>
+        <p id="userAddSuccessInfo"></p>
+        <div class="modal-buttons">
+            <button onclick="closeUserAddSuccessModal()">Ok</button>
+        </div>
+    </div>
+</div>
+
+<!-- Benutzer löschen Bestätigung -->
+<div id="userDeleteModalOverlay" class="modal-overlay">
+    <div class="modal-box">
+        <h3>Benutzer löschen</h3>
+        <p>Möchten Sie diesen Benutzer wirklich löschen?</p>
+        <div class="modal-buttons">
+            <button onclick="confirmDeleteUser()">Ja</button>
+            <button onclick="closeUserDeleteModal()">Abbrechen</button>
+        </div>
+    </div>
+</div>
+
+<!-- Benutzer löschen Erfolg -->
+<div id="userDeleteSuccessModalOverlay" class="modal-overlay">
+    <div class="modal-box">
+        <h3>Benutzer gelöscht</h3>
+        <p id="userDeleteSuccessInfo"></p>
+        <div class="modal-buttons">
+            <button onclick="closeUserDeleteSuccessModal()">Ok</button>
+        </div>
+    </div>
+</div>
+
+<!-- Benutzer nicht gefunden -->
+<div id="userNotFoundModalOverlay" class="modal-overlay">
+    <div class="modal-box">
+        <h3>Benutzer nicht gefunden</h3>
+        <p>Es wurde kein Benutzer mit dieser RFID gefunden.</p>
+        <div class="modal-buttons">
+            <button onclick="closeUserNotFoundModal()">Ok</button>
+        </div>
+    </div>
+</div>
+
+<!-- Logs löschen Bestätigung -->
+<div id="logsDeleteModalOverlay" class="modal-overlay">
+    <div class="modal-box">
+        <h3>Logs löschen</h3>
+        <p>Möchten Sie die Logs für dieses Datum wirklich löschen?</p>
+        <div class="modal-buttons">
+            <button onclick="confirmDeleteLogs()">Ja</button>
+            <button onclick="closeLogsDeleteModal()">Abbrechen</button>
+        </div>
+    </div>
+</div>
+
+<!-- Logs löschen Erfolg -->
+<div id="logsDeleteSuccessModalOverlay" class="modal-overlay">
+    <div class="modal-box">
+        <h3>Logs gelöscht</h3>
+        <p>Die Logs wurden erfolgreich gelöscht.</p>
+        <div class="modal-buttons">
+            <button onclick="closeLogsDeleteSuccessModal()">Ok</button>
+        </div>
+    </div>
+</div>
+
+<!-- Keine Logs gefunden -->
+<div id="logsNotFoundModalOverlay" class="modal-overlay">
+    <div class="modal-box">
+        <h3>Keine Logs gefunden</h3>
+        <p>Für das angegebene Datum wurden keine Logs gefunden.</p>
+        <div class="modal-buttons">
+            <button onclick="closeLogsNotFoundModal()">Ok</button>
+        </div>
+    </div>
+</div>
+
+<!-- Geräte löschen Bestätigung -->
+<div id="devicesDeleteModalOverlay" class="modal-overlay">
+    <div class="modal-box">
+        <h3>Geräte löschen</h3>
+        <p>Möchten Sie alle Geräte an dieser Position wirklich löschen?</p>
+        <div class="modal-buttons">
+            <button onclick="confirmDeleteDevices()">Ja</button>
+            <button onclick="closeDevicesDeleteModal()">Abbrechen</button>
+        </div>
+    </div>
+</div>
+
+<!-- Geräte löschen Erfolg -->
+<div id="devicesDeleteSuccessModalOverlay" class="modal-overlay">
+    <div class="modal-box">
+        <h3>Geräte gelöscht</h3>
+        <p id="devicesDeleteSuccessInfo"></p>
+        <div class="modal-buttons">
+            <button onclick="closeDevicesDeleteSuccessModal()">Ok</button>
+        </div>
+    </div>
+</div>
+
+<!-- Gerät hinzufügen Erfolg -->
+<div id="deviceAddSuccessModalOverlay" class="modal-overlay">
+    <div class="modal-box">
+        <h3>Gerät hinzugefügt</h3>
+        <p id="deviceAddSuccessInfo"></p>
+        <div class="modal-buttons">
+            <button onclick="closeDeviceAddSuccessModal()">Ok</button>
+        </div>
+    </div>
+</div>
+
+<!-- Fehler beim Hinzufügen der Entity ID -->
+<div id="entityIdError" class="error-message"></div>
+
 </body>
 </html>
