@@ -136,9 +136,3 @@ def get_status(entity_id):
     except Exception as e:
         print(f"Ein Fehler ist aufgetreten: {e}")
     return None
-
-# Beispiel: Licht einschalten
-# control_actor("light", "turn_on", "light.lampe_wohnzimmer")
-
-# Aufruf der Funktion
-# add_to_shopping_list()
