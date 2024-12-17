@@ -5,6 +5,7 @@
 # This source file is subject to the MIT license that is bundled
 # with this source code in the file LICENSE.
 import socket
+
 from access_conroll import access_door,denie_access
 from cryptography.fernet import Fernet
 import os
@@ -25,8 +26,8 @@ def decrypt_data(fernet_key_encoded):
         key_fernet_path = os.path.join(os.path.dirname(__file__), "fernet_key.pem")
         fernet_key = open(key_fernet_path, "rb").read().strip()
         fernet = Fernet(fernet_key)
-        farnet_key_decrypted = fernet.decrypt(fernet_key_encoded.encode()).decode()
-        return farnet_key_decrypted
+        fernet_key_decrypted = fernet.decrypt(fernet_key_encoded.encode())
+        return fernet_key_decrypted
     else:
         print("Kein Fernetkey bekommen")
 
@@ -45,6 +46,7 @@ def start_tcp_server():
         if data_list and len(data_list) >= 3:
             rfid_uid = data_list[0]
             fernet_key_encoded = data_list[1]
+            print(fernet_key_encoded)
             position = data_list[2]
             fernet_key = decrypt_data(fernet_key_encoded)
             print(f"rfid_uid: {rfid_uid}, fernet_key: {fernet_key}, position: {position}")
@@ -53,9 +55,53 @@ def start_tcp_server():
             denie_access()
             print("ungültige Daten erhalten")
             print(f"die ehaltenden daten sind: {data_list}")
-        
+     
         
         
         client_socket.close()
 
+def start_tcp_server_port2():
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.bind(('0.0.0.0', 12346))
+    server_socket.listen(5)
+    print("TCP-Server 2 läuft und wartet auf Verbindungen...")
+
+    stored_rfid = "NO_RFID"
+    stored_enc_key = None
+
+    while True:
+        client_socket, addr = server_socket.accept()
+        print(f"Verbindung von {addr} akzeptiert")
+        data = client_socket.recv(1024).decode('utf-8').strip()
+
+        if data == "GET_RFID":
+            # RFID zurücksenden
+            client_socket.sendall(stored_rfid.encode('utf-8'))
+
+        elif data == "GET_FERNET":
+            # Fernet-Key zurücksenden, falls vorhanden
+            if stored_enc_key is not None:
+                response = "ENC:" + stored_enc_key
+                client_socket.sendall(response.encode('utf-8'))
+            else:
+                client_socket.sendall(b"NO_KEY")
+
+        elif data.startswith("ENC:"):
+            # Fernet-Key speichern
+            stored_enc_key = data[4:]
+            print(f"Fernet-Key erhalten und gespeichert: {stored_enc_key}")
+            client_socket.sendall(b"Fernet-Key erhalten")
+
+        elif data.startswith("RFID:"):
+            # RFID aktualisieren
+            stored_rfid = data[5:]
+            print(f"RFID aktualisiert: {stored_rfid}")
+            client_socket.sendall(b"RFID gesetzt")
+
+        else:
+            # Unbekannter Befehl
+            print("Unbekannter Befehl erhalten:", data)
+            client_socket.sendall(b"Unbekannter Befehl")
+
+        client_socket.close()
 

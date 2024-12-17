@@ -55,7 +55,7 @@ def add_user(username, rfid_uid, role, image_path=None):
     try:
         
         fernet_key = Fernet.generate_key()
-        
+        print(fernet_key)
         fernet = Fernet(fernet_key)
         
         if image_path:
@@ -81,6 +81,7 @@ def add_user(username, rfid_uid, role, image_path=None):
                     (encrypted_username, rfid_uid, encrypted_role, encrypted_image))
         conn.commit()
         return "success" , encrypted_fernetkey.decode("utf-8")
+
     except sqlite3.IntegrityError:
         print("RFID ist bereits vorhanden.")
     except FileNotFoundError:
@@ -120,12 +121,13 @@ def get_user_by_rfid(rfid_uid, fernet_key):
     username = user[1]
     role = user[2]
     image = user[3]
+    print(fernet_key) # debug
     fernet = Fernet(fernet_key)
     username = fernet.decrypt(username)
     role = fernet.decrypt(role)
     image_dec = fernet.decrypt(image)
     user = (user_id, username, role, image_dec)
-    
+    print(user)
     conn.close()
     return user
 

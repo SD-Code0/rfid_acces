@@ -13,7 +13,8 @@ import subprocess
 import threading
 import web_ui
 import sqlite3
-from espdata import start_tcp_server
+import socket
+from espdata import start_tcp_server,start_tcp_server_port2
 from web_ui import mainpage
 from db_manager import add_user,delete_user_by_rfid,get_users,get_access_logs,delete_logs_from_db,create_tables,get_devices_by_pos,db_add_device,user_exists_by_rfid,db_delete_device,db_check_entity_id,device_exists
 create_tables()
@@ -31,6 +32,10 @@ webui_thread.start()
 tcp_thread = threading.Thread(target=start_tcp_server, daemon=True)
 tcp_thread.start()
 
+tcp_thread2 = threading.Thread(target=start_tcp_server_port2, daemon=True)
+tcp_thread2.start()
+
+
 mainpage()
 
 def shutdown_server():
@@ -45,6 +50,8 @@ CORS(app)
 
 users = []
 logs = []
+
+
 
 def get_user_db_connection():
     conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'user.db'))
@@ -79,6 +86,24 @@ def logout():
     session.pop('logged_in', None)
     return redirect(url_for('login'))
 
+@app.route('/fetch_rfid', methods=['GET'])
+def fetch_rfid():
+    try:
+        tcp_server_ip = '127.0.0.1'
+        tcp_server_port = 12346  # Port des zweiten TCP-Servers
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client_socket.connect((tcp_server_ip, tcp_server_port))
+
+        client_socket.sendall(b'GET_RFID')  # Beispiel-Nachricht zum Abrufen der RFID
+        rfid = client_socket.recv(1024).decode('utf-8')
+        client_socket.close()
+
+        return jsonify({"rfid": rfid})
+    except Exception as e:
+        print(f"Fehler beim Abrufen der RFID von TCP-Server 2: {e}")
+        return jsonify({"rfid": None})
+
+
 @app.route('/add_user', methods=['POST'])
 def add_user_route():
     if 'logged_in' in session:
@@ -87,16 +112,35 @@ def add_user_route():
         rfid = data.get('rfid')
         role = data.get('role')
         file = data.get('file')
-        
+
         if file:
             file_path = os.path.join('uploads', file.filename)
             file.save(file_path)
         else:
             file_path = None
+
+        status, enc_key = add_user(username, rfid, role, file_path)
         
-        status,enc_key = add_user(username, rfid, role, file_path)
         if status == 'success':
+            try:
+                # Fernet-Key an den zweiten Server senden
+                tcp_server_ip = '127.0.0.1'
+                tcp_server_port = 12346
+                client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                client_socket.connect((tcp_server_ip, tcp_server_port))
+
+                # Schicken Sie den Key als "ENC:<key>"
+                msg = "ENC:" + enc_key
+                client_socket.sendall(msg.encode('utf-8'))
+                response = client_socket.recv(1024).decode('utf-8')
+                print("Antwort vom 2. Server auf Key-Übergabe:", response)
+                client_socket.close()
+            except Exception as e:
+                print(f"Fehler beim Senden des enc_key an den TCP-Server: {e}")
+            
             return jsonify({"status": "success", "username": username, "rfid": rfid, "role": role, "encrypted_fernet_key": enc_key})
+        else:
+            return jsonify({"status": "error", "message": "Fehler beim Hinzufügen des Benutzers."})
     else:
         return redirect(url_for('login'))
 

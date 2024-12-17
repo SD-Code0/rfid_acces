@@ -139,7 +139,6 @@
             margin-bottom: 10px;
         }
 
-        /* Neue Klasse für den Fernet-Key */
         .fernet-key {
             word-wrap: break-word;
             white-space: pre-wrap;
@@ -153,7 +152,6 @@
             margin-top: 5px;
         }
 
-        /* Modale Overlays */
         .modal-overlay {
             position: fixed;
             top: 0; 
@@ -197,7 +195,6 @@
             margin: 0 5px;
         }
 
-        /* Fehler- und Erfolgsmeldungen */
         .error-message {
             color: red;
             font-size: 14px;
@@ -217,8 +214,6 @@
         let deletedUserRfid = null;
         let logDateToShow = null;
         let logDateToDelete = null;
-
-        // Neu für Geräte löschen
         let deleteDevicePosition = null;
 
         function openTab(event, tabName) {
@@ -276,7 +271,7 @@
                                     `RFID: ${data.rfid}<br>` +
                                     `Rolle: ${data.role}<br><br>` +
                                     `<strong>Verschlüsselter Fernet-Key:</strong><br>` +
-                                    `<span class="fernet-key">${data.encrypted_fernet_key}</span>`;
+                                    `<span class="fernet-key">${data.encrypted_fernet_key || ''}</span>`;
                     showUserAddSuccessModal();
                     fetchUsers();
                     document.getElementById('addUserForm').reset();
@@ -409,177 +404,6 @@
             .catch(error => console.error('Error restarting server:', error));
         }
 
-        // Geräte hinzufügen und löschen
-        document.addEventListener('DOMContentLoaded', function() {
-            // Benutzer hinzufügen
-            document.getElementById('addUserForm').addEventListener('submit', function(event) {
-                event.preventDefault();
-                const formData = new FormData(event.target);
-                addUserData = {
-                    username: formData.get('username'),
-                    rfid: formData.get('rfid'),
-                    role: formData.get('role'),
-                    file: formData.get('filePath')
-                };
-                addUser();
-            });
-
-            // Benutzer löschen
-            document.getElementById('deleteUserForm').addEventListener('submit', function(event) {
-                event.preventDefault();
-                const formData = new FormData(event.target);
-                const rfidToDelete = formData.get('rfid_delete');
-                deleteUserData = { rfid: rfidToDelete };
-
-                fetch('/check_user', {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: new URLSearchParams({ rfid: rfidToDelete })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.exists) {
-                        showUserDeleteModal();
-                    } else {
-                        showUserNotFoundModal();
-                    }
-                })
-                .catch(error => {
-                    console.error('Fehler bei der Nutzerprüfung:', error);
-                    alert('Fehler bei der Prüfung des Benutzers.');
-                });
-            });
-
-            // Logs anzeigen
-            document.getElementById('getLogsForm').addEventListener('submit', function(event) {
-                event.preventDefault();
-                const formData = new FormData(event.target);
-                logDateToShow = formData.get('log_date');
-                // Zuerst prüfen ob Logs existieren
-                fetch('/check_logs', {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: new URLSearchParams({ log_date: logDateToShow })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.exists) {
-                        fetchLogs(logDateToShow);
-                    } else {
-                        showLogsNotFoundModal();
-                    }
-                })
-                .catch(error => {
-                    console.error('Fehler bei der Log-Prüfung:', error);
-                    alert('Fehler bei der Prüfung der Logs.');
-                });
-            });
-
-            // Logs löschen
-            document.getElementById('deleteLogsForm').addEventListener('submit', function(event) {
-                event.preventDefault();
-                const formData = new FormData(event.target);
-                logDateToDelete = formData.get('log_date_delete');
-                // Check ob Logs existieren
-                fetch('/check_logs', {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: new URLSearchParams({ log_date: logDateToDelete })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.exists) {
-                        showLogsDeleteModal();
-                    } else {
-                        showLogsNotFoundModal();
-                    }
-                })
-                .catch(error => {
-                    console.error('Fehler bei der Log-Prüfung:', error);
-                    alert('Fehler bei der Prüfung der Logs.');
-                });
-            });
-
-            // Geräte hinzufügen
-            document.getElementById('addDeviceForm').addEventListener('submit', function(event) {
-                event.preventDefault();
-                const formData = new FormData(event.target);
-                const addDeviceData = {
-                    actor_domain: formData.get('actor_domain'),
-                    service: formData.get('service'),
-                    entity_id: formData.get('entity_id'),
-                    device_position: formData.get('device_position')
-                };
-
-                // Direkter Versuch, das Gerät hinzuzufügen
-                fetch('/add_device', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(addDeviceData)
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === "success") {
-                        const deviceInfo = `
-                            Actor Domain: ${data.actor_domain}<br>
-                            Service: ${data.service}<br>
-                            Entity ID: ${data.entity_id}<br>
-                            Position: ${data.device_position}
-                        `;
-                        showDeviceAddSuccessModal(deviceInfo);
-                        fetchDevices();
-                        event.target.reset();
-                        clearEntityIdError();
-                    } else if (data.status === "error" && data.message === "Entity ID existiert bereits.") {
-                        showEntityIdExistsError();
-                    } else {
-                        alert("Fehler beim Hinzufügen des Geräts: " + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Fehler beim Hinzufügen des Geräts.');
-                });
-            });
-
-            // Geräte löschen
-            document.getElementById('deleteDevicesForm').addEventListener('submit', function(event) {
-                event.preventDefault();
-                const formData = new FormData(event.target);
-                deleteDevicePosition = formData.get('device_position_delete');
-                showDevicesDeleteModal();
-            });
-        });
-
-        function fetchDevices() {
-            fetch('/get_devices')
-                .then(response => response.json())
-                .then(devices => {
-                    const deviceList = document.getElementById('device_list');
-                    deviceList.innerHTML = '';
-                    devices.forEach(device => {
-                        const deviceItem = document.createElement('div');
-                        deviceItem.textContent = `
-                            ID: ${device.device_id}, 
-                            Actor Domain: ${device.actor_domain}, 
-                            Service: ${device.service}, 
-                            Entity ID: ${device.entity_id}, 
-                            Position: ${device.device_position}
-                        `;
-                        deviceList.appendChild(deviceItem);
-                    });
-                })
-                .catch(error => console.error('Fehler beim Abrufen der Geräte:', error));
-        }
-
         function fetchLogs(date) {
             fetch('/get_logs', {
                 method: 'POST',
@@ -646,7 +470,6 @@
             document.getElementById('logsNotFoundModalOverlay').classList.remove('active');
         }
 
-        // Geräte löschen Funktionen
         function showDevicesDeleteModal() {
             document.getElementById('devicesDeleteModalOverlay').classList.add('active');
         }
@@ -689,7 +512,6 @@
             document.getElementById('devicesDeleteSuccessModalOverlay').classList.remove('active');
         }
 
-        // Gerät hinzufügen Erfolgsmeldung
         function showDeviceAddSuccessModal(info) {
             document.getElementById('deviceAddSuccessInfo').innerHTML = info;
             document.getElementById('deviceAddSuccessModalOverlay').classList.add('active');
@@ -699,19 +521,199 @@
             document.getElementById('deviceAddSuccessModalOverlay').classList.remove('active');
         }
 
-        // Fehlermeldung für existierende Entity ID anzeigen
         function showEntityIdExistsError() {
             const errorDiv = document.getElementById('entityIdError');
             errorDiv.textContent = 'Entity ID existiert bereits.';
             errorDiv.classList.add('error-message');
         }
 
-        // Fehlermeldung für existierende Entity ID löschen
         function clearEntityIdError() {
             const errorDiv = document.getElementById('entityIdError');
             errorDiv.textContent = '';
             errorDiv.classList.remove('error-message');
         }
+
+        // Funktion zum RFID auslesen per Button
+        function fetchRFID() {
+            fetch('/fetch_rfid')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.rfid) {
+                        document.getElementById('rfid_add').value = data.rfid;
+                    } else {
+                        alert('RFID konnte nicht abgerufen werden.');
+                    }
+                })
+                .catch(error => console.error('Fehler beim Abrufen der RFID:', error));
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Benutzer hinzufügen
+            document.getElementById('addUserForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const formData = new FormData(event.target);
+                addUserData = {
+                    username: formData.get('username'),
+                    rfid: formData.get('rfid'),
+                    role: formData.get('role'),
+                    file: formData.get('filePath')
+                };
+                addUser();
+            });
+
+            // Benutzer löschen
+            document.getElementById('deleteUserForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const formData = new FormData(event.target);
+                const rfidToDelete = formData.get('rfid_delete');
+                deleteUserData = { rfid: rfidToDelete };
+
+                fetch('/check_user', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({ rfid: rfidToDelete })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.exists) {
+                        showUserDeleteModal();
+                    } else {
+                        showUserNotFoundModal();
+                    }
+                })
+                .catch(error => {
+                    console.error('Fehler bei der Nutzerprüfung:', error);
+                    alert('Fehler bei der Prüfung des Benutzers.');
+                });
+            });
+
+            // Logs anzeigen
+            document.getElementById('getLogsForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const formData = new FormData(event.target);
+                logDateToShow = formData.get('log_date');
+                fetch('/check_logs', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({ log_date: logDateToShow })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.exists) {
+                        fetchLogs(logDateToShow);
+                    } else {
+                        showLogsNotFoundModal();
+                    }
+                })
+                .catch(error => {
+                    console.error('Fehler bei der Log-Prüfung:', error);
+                    alert('Fehler bei der Prüfung der Logs.');
+                });
+            });
+
+            // Logs löschen
+            document.getElementById('deleteLogsForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const formData = new FormData(event.target);
+                logDateToDelete = formData.get('log_date_delete');
+                fetch('/check_logs', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({ log_date: logDateToDelete })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.exists) {
+                        showLogsDeleteModal();
+                    } else {
+                        showLogsNotFoundModal();
+                    }
+                })
+                .catch(error => {
+                    console.error('Fehler bei der Log-Prüfung:', error);
+                    alert('Fehler bei der Prüfung der Logs.');
+                });
+            });
+
+            // Geräte hinzufügen
+            document.getElementById('addDeviceForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const formData = new FormData(event.target);
+                const addDeviceData = {
+                    actor_domain: formData.get('actor_domain'),
+                    service: formData.get('service'),
+                    entity_id: formData.get('entity_id'),
+                    device_position: formData.get('device_position')
+                };
+
+                fetch('/add_device', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(addDeviceData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        const deviceInfo = `
+                            Actor Domain: ${data.actor_domain}<br>
+                            Service: ${data.service}<br>
+                            Entity ID: ${data.entity_id}<br>
+                            Position: ${data.device_position}
+                        `;
+                        showDeviceAddSuccessModal(deviceInfo);
+                        fetchDevices();
+                        event.target.reset();
+                        clearEntityIdError();
+                    } else if (data.status === "error" && data.message === "Entity ID existiert bereits.") {
+                        showEntityIdExistsError();
+                    } else {
+                        alert("Fehler beim Hinzufügen des Geräts: " + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Fehler beim Hinzufügen des Geräts.');
+                });
+            });
+
+            // Geräte löschen
+            document.getElementById('deleteDevicesForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const formData = new FormData(event.target);
+                deleteDevicePosition = formData.get('device_position_delete');
+                showDevicesDeleteModal();
+            });
+        });
+
+        function fetchDevices() {
+            fetch('/get_devices')
+                .then(response => response.json())
+                .then(devices => {
+                    const deviceList = document.getElementById('device_list');
+                    deviceList.innerHTML = '';
+                    devices.forEach(device => {
+                        const deviceItem = document.createElement('div');
+                        deviceItem.textContent = `
+                            ID: ${device.device_id}, 
+                            Actor Domain: ${device.actor_domain}, 
+                            Service: ${device.service}, 
+                            Entity ID: ${device.entity_id}, 
+                            Position: ${device.device_position}
+                        `;
+                        deviceList.appendChild(deviceItem);
+                    });
+                })
+                .catch(error => console.error('Fehler beim Abrufen der Geräte:', error));
+        }
+
     </script>
 </head>
 <body>
@@ -773,6 +775,7 @@
                 <div>
                     <label for="rfid_add">RFID:</label>
                     <input type="text" id="rfid_add" name="rfid" required>
+                    <button type="button" onclick="fetchRFID()">RFID auslesen</button>
                 </div>
                 <div>
                     <label for="role_add">Rolle:</label>
@@ -871,7 +874,7 @@
                     <label for="device_position">Device Position:</label>
                     <input type="text" id="device_position" name="device_position" required>
                 </div>
-                <div id="entityIdError"></div> <!-- Bereich für Entity ID-Fehlermeldung -->
+                <div id="entityIdError"></div>
                 <div>
                     <input type="submit" value="Gerät hinzufügen">
                 </div>

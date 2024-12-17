@@ -57,13 +57,10 @@ def access_door(rfid_uid,fernet_key,position):
     
     user = get_user_by_rfid(rfid_uid,fernet_key)
 
-    
-    
     if user and len(user) >= 4:
         for device in device_data:
             device_pos = (device['device_position'])
         if position == str(device_pos):
-        
             
             print(f"Zugang gewährt für {user[1]}")
             url = 'http://127.0.0.1:5002/update_ui'
