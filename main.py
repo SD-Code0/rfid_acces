@@ -62,6 +62,8 @@ def get_user_db_connection():
 def homepage():
     return render_template('homepage.html')
 
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
