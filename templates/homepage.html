@@ -207,6 +207,7 @@
             margin-top: 5px;
         }
     </style>
+
     <script>
         let addUserData = null;
         let deleteUserData = null;
@@ -216,6 +217,7 @@
         let logDateToDelete = null;
         let deleteDevicePosition = null;
 
+        // Tabs öffnen
         function openTab(event, tabName) {
             event.preventDefault();
             var tabContent = document.getElementsByClassName("tab-content");
@@ -230,6 +232,7 @@
             event.currentTarget.classList.add("active");
         }
 
+        // Sub-Tabs öffnen
         function openSubTab(event, parentId, subTabId) {
             event.preventDefault();
             var parent = document.getElementById(parentId);
@@ -240,6 +243,7 @@
             document.getElementById(subTabId).classList.add('active');
         }
 
+        // Benutzer laden
         function fetchUsers() {
             fetch('/show_users')
                 .then(response => response.json())
@@ -256,6 +260,7 @@
                 .catch(error => console.error('Error fetching users:', error));
         }
 
+        // Benutzer hinzufügen
         function addUser() {
             fetch('/add_user', {
                 method: 'POST',
@@ -285,23 +290,22 @@
             });
         }
 
+        // Modale Fenster (Benutzer hinzufügen)
         function showUserAddSuccessModal() {
             document.getElementById('userAddSuccessInfo').innerHTML = addedUserInfo;
             document.getElementById('userAddSuccessModalOverlay').classList.add('active');
         }
-
         function closeUserAddSuccessModal() {
             document.getElementById('userAddSuccessModalOverlay').classList.remove('active');
         }
 
+        // Modale Fenster (Benutzer löschen)
         function showUserDeleteModal() {
             document.getElementById('userDeleteModalOverlay').classList.add('active');
         }
-
         function closeUserDeleteModal() {
             document.getElementById('userDeleteModalOverlay').classList.remove('active');
         }
-
         function confirmDeleteUser() {
             closeUserDeleteModal();
             fetch('/delete_user', {
@@ -327,45 +331,39 @@
                 alert('Fehler beim Entfernen des Benutzers.');
             });
         }
-
-        function showUserNotFoundModal() {
-            document.getElementById('userNotFoundModalOverlay').classList.add('active');
-        }
-
-        function closeUserNotFoundModal() {
-            document.getElementById('userNotFoundModalOverlay').classList.remove('active');
-        }
-
         function showUserDeleteSuccessModal() {
             document.getElementById('userDeleteSuccessInfo').innerHTML = "RFID: " + deletedUserRfid;
             document.getElementById('userDeleteSuccessModalOverlay').classList.add('active');
         }
-
         function closeUserDeleteSuccessModal() {
             document.getElementById('userDeleteSuccessModalOverlay').classList.remove('active');
         }
+        function showUserNotFoundModal() {
+            document.getElementById('userNotFoundModalOverlay').classList.add('active');
+        }
+        function closeUserNotFoundModal() {
+            document.getElementById('userNotFoundModalOverlay').classList.remove('active');
+        }
 
+        // Abmeldung
         function showLogoutModal() {
             document.getElementById('logoutModalOverlay').classList.add('active');
         }
-
         function closeLogoutModal() {
             document.getElementById('logoutModalOverlay').classList.remove('active');
         }
-
         function confirmLogout() {
             closeLogoutModal();
             window.location.href = "{{ url_for('logout') }}";
         }
 
+        // Server-Steuerung
         function showShutdownModal() {
             document.getElementById('shutdownModalOverlay').classList.add('active');
         }
-
         function closeShutdownModal() {
             document.getElementById('shutdownModalOverlay').classList.remove('active');
         }
-
         function confirmShutdown() {
             closeShutdownModal();
             fetch('/shutdown', {
@@ -384,11 +382,9 @@
         function showRestartModal() {
             document.getElementById('restartModalOverlay').classList.add('active');
         }
-
         function closeRestartModal() {
             document.getElementById('restartModalOverlay').classList.remove('active');
         }
-
         function confirmRestart() {
             closeRestartModal();
             fetch('/restart', {
@@ -404,6 +400,7 @@
             .catch(error => console.error('Error restarting server:', error));
         }
 
+        // Logs
         function fetchLogs(date) {
             fetch('/get_logs', {
                 method: 'POST',
@@ -424,7 +421,6 @@
             })
             .catch(error => console.error('Error fetching logs:', error));
         }
-
         function confirmDeleteLogs() {
             closeLogsDeleteModal();
             fetch('/delete_logs', {
@@ -448,21 +444,18 @@
                 alert('Fehler beim Löschen der Logs.');
             });
         }
-
         function showLogsDeleteModal() {
             document.getElementById('logsDeleteModalOverlay').classList.add('active');
         }
         function closeLogsDeleteModal() {
             document.getElementById('logsDeleteModalOverlay').classList.remove('active');
         }
-
         function showLogsDeleteSuccessModal() {
             document.getElementById('logsDeleteSuccessModalOverlay').classList.add('active');
         }
         function closeLogsDeleteSuccessModal() {
             document.getElementById('logsDeleteSuccessModalOverlay').classList.remove('active');
         }
-
         function showLogsNotFoundModal() {
             document.getElementById('logsNotFoundModalOverlay').classList.add('active');
         }
@@ -470,14 +463,13 @@
             document.getElementById('logsNotFoundModalOverlay').classList.remove('active');
         }
 
+        // Geräte
         function showDevicesDeleteModal() {
             document.getElementById('devicesDeleteModalOverlay').classList.add('active');
         }
-
         function closeDevicesDeleteModal() {
             document.getElementById('devicesDeleteModalOverlay').classList.remove('active');
         }
-
         function confirmDeleteDevices() {
             closeDevicesDeleteModal();
             fetch('/delete_devices_by_position', {
@@ -502,12 +494,10 @@
                 alert('Fehler beim Löschen der Geräte.');
             });
         }
-
         function showDevicesDeleteSuccessModal() {
             document.getElementById('devicesDeleteSuccessInfo').innerHTML = `Geräte an Position <strong>${deleteDevicePosition}</strong> wurden erfolgreich gelöscht.`;
             document.getElementById('devicesDeleteSuccessModalOverlay').classList.add('active');
         }
-
         function closeDevicesDeleteSuccessModal() {
             document.getElementById('devicesDeleteSuccessModalOverlay').classList.remove('active');
         }
@@ -516,24 +506,41 @@
             document.getElementById('deviceAddSuccessInfo').innerHTML = info;
             document.getElementById('deviceAddSuccessModalOverlay').classList.add('active');
         }
-
         function closeDeviceAddSuccessModal() {
             document.getElementById('deviceAddSuccessModalOverlay').classList.remove('active');
         }
-
         function showEntityIdExistsError() {
             const errorDiv = document.getElementById('entityIdError');
             errorDiv.textContent = 'Entity ID existiert bereits.';
             errorDiv.classList.add('error-message');
         }
-
         function clearEntityIdError() {
             const errorDiv = document.getElementById('entityIdError');
             errorDiv.textContent = '';
             errorDiv.classList.remove('error-message');
         }
+        function fetchDevices() {
+            fetch('/get_devices')
+                .then(response => response.json())
+                .then(devices => {
+                    const deviceList = document.getElementById('device_list');
+                    deviceList.innerHTML = '';
+                    devices.forEach(device => {
+                        const deviceItem = document.createElement('div');
+                        deviceItem.textContent = `
+                            ID: ${device.device_id}, 
+                            Actor Domain: ${device.actor_domain}, 
+                            Service: ${device.service}, 
+                            Entity ID: ${device.entity_id}, 
+                            Position: ${device.device_position}
+                        `;
+                        deviceList.appendChild(deviceItem);
+                    });
+                })
+                .catch(error => console.error('Fehler beim Abrufen der Geräte:', error));
+        }
 
-        // Funktion zum RFID auslesen per Button
+        // RFID per Button einlesen
         function fetchRFID() {
             fetch('/fetch_rfid')
                 .then(response => response.json())
@@ -547,6 +554,33 @@
                 .catch(error => console.error('Fehler beim Abrufen der RFID:', error));
         }
 
+        // Einstellungen speichern (für /update_config)
+        function updateConfig() {
+            const ssid     = document.getElementById('ssid').value;
+            const password = document.getElementById('password').value;
+            const host     = document.getElementById('host').value;
+            const pos      = document.getElementById('pos').value;
+
+            fetch('/update_config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ssid, password, host, pos })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    alert("Einstellungen erfolgreich aktualisiert!");
+                } else {
+                    alert("Fehler: " + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Fehler bei updateConfig:', error);
+                alert("Ein unbekannter Fehler ist aufgetreten.");
+            });
+        }
+
+        // Events beim Laden der Seite
         document.addEventListener('DOMContentLoaded', function() {
             // Benutzer hinzufügen
             document.getElementById('addUserForm').addEventListener('submit', function(event) {
@@ -589,7 +623,7 @@
                 });
             });
 
-            // Logs anzeigen
+            // Logs abrufen
             document.getElementById('getLogsForm').addEventListener('submit', function(event) {
                 event.preventDefault();
                 const formData = new FormData(event.target);
@@ -692,28 +726,6 @@
                 showDevicesDeleteModal();
             });
         });
-
-        function fetchDevices() {
-            fetch('/get_devices')
-                .then(response => response.json())
-                .then(devices => {
-                    const deviceList = document.getElementById('device_list');
-                    deviceList.innerHTML = '';
-                    devices.forEach(device => {
-                        const deviceItem = document.createElement('div');
-                        deviceItem.textContent = `
-                            ID: ${device.device_id}, 
-                            Actor Domain: ${device.actor_domain}, 
-                            Service: ${device.service}, 
-                            Entity ID: ${device.entity_id}, 
-                            Position: ${device.device_position}
-                        `;
-                        deviceList.appendChild(deviceItem);
-                    });
-                })
-                .catch(error => console.error('Fehler beim Abrufen der Geräte:', error));
-        }
-
     </script>
 </head>
 <body>
@@ -722,6 +734,9 @@
         <a href="#" class="tab-link" onclick="openTab(event, 'TabUser')">Benutzerverwaltung</a>
         <a href="#" class="tab-link" onclick="openTab(event, 'TabLogs')">Logs</a>
         <a href="#" class="tab-link" onclick="openTab(event, 'TabDevices')">Geräte</a>
+        <!-- Neuer Tab "Einstellungen" -->
+        <a href="#" class="tab-link" onclick="openTab(event, 'TabSettings')">Einstellungen</a>
+
         <a href="#" class="tab-link" onclick="openTab(event, 'TabShutdown')">Server</a>
         <a href="#" class="tab-link" onclick="showLogoutModal()">Logout</a>
     {% else %}
@@ -730,6 +745,7 @@
 </div>
 
 <div class="container">
+    <!-- Login-Tab -->
     <div id="Login" class="content tab-content {% if not session.get('logged_in') %}active{% endif %}">
         <h2>Admin Login</h2>
         <form action="{{ url_for('login') }}" method="post">
@@ -904,6 +920,33 @@
                 </div>
             </form>
         </div>
+    </div>
+
+    <!-- Neuer "Einstellungen"-Tab -->
+    <div id="TabSettings" class="content tab-content">
+        <h2>Einstellungen</h2>
+        <div class="tabs-info">Hier können Sie WLAN- und Host-Einstellungen vornehmen.</div>
+        <form id="settingsForm" onsubmit="event.preventDefault(); updateConfig();">
+            <div>
+                <label for="ssid">SSID:</label>
+                <input type="text" id="ssid" name="ssid" />
+            </div>
+            <div>
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" />
+            </div>
+            <div>
+                <label for="host">Host:</label>
+                <input type="text" id="host" name="host" />
+            </div>
+            <div>
+                <label for="pos">POS:</label>
+                <input type="text" id="pos" name="pos" />
+            </div>
+            <div>
+                <input type="submit" value="Speichern">
+            </div>
+        </form>
     </div>
 
     <!-- Server -->

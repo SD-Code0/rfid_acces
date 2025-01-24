@@ -20,11 +20,52 @@ from db_manager import add_user,delete_user_by_rfid,get_users,get_access_logs,de
 create_tables()
 
 
+def change_config(ssid, password, host, pos):
+    file_path1 = "esp32_Code/ESP32_RFIDauslesung.ino"
+    file_path2 = "esp32_Code/esp32_RFID_write-reade.ino"
 
+    # Hilfsfunktion zur Aktualisierung von Zeilen
+    def update_lines(lines, replacements):
+        for i, line in enumerate(lines):
+            for key, value in replacements.items():
+                if line.startswith(key):
+                    lines[i] = f'{key} "{value}";\n'
+        return lines
+
+    # Datei 1 bearbeiten
+    full_path1 = os.path.join(os.path.dirname(__file__), file_path1)
+    with open(full_path1, "r") as file1:
+        lines1 = file1.readlines()
+
+    replacements1 = {
+        'const char* ssid =': ssid,
+        'const char* password =': password,
+        'const char* host =': host,
+        'const char* pos =': pos,
+    }
+    updated_lines1 = update_lines(lines1, replacements1)
+
+    with open(full_path1, "w") as file1:
+        file1.writelines(updated_lines1)
+
+    # Datei 2 bearbeiten
+    full_path2 = os.path.join(os.path.dirname(__file__), file_path2)
+    with open(full_path2, "r") as file2:
+        lines2 = file2.readlines()
+
+    replacements2 = {
+        'const char* ssid =': ssid,
+        'const char* password =': password,
+        'const char* host =': host,
+    }
+    updated_lines2 = update_lines(lines2, replacements2)
+
+    with open(full_path2, "w") as file2:
+        file2.writelines(updated_lines2)
+
+    print("Konfigurationswerte in beiden Dateien erfolgreich aktualisiert.")
 def run_webui():
     web_ui.socketio.run(web_ui.app,host='0.0.0.0', port=5002, debug=False)
-
-
 
 webui_thread = threading.Thread(target=run_webui, daemon = True)
 webui_thread.start()
@@ -47,11 +88,8 @@ app.secret_key = os.urandom(24)
 socketio = SocketIO(app)
 CORS(app)
 
-
 users = []
 logs = []
-
-
 
 def get_user_db_connection():
     conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'user.db'))
@@ -87,6 +125,23 @@ def login():
 def logout():
     session.pop('logged_in', None)
     return redirect(url_for('login'))
+
+@app.route('/update_config', methods=['POST'])
+def update_config_route():
+    if 'logged_in' in session:
+        data = request.get_json()
+        ssid = data.get('ssid')
+        password = data.get('password')
+        host = data.get('host')
+        pos = data.get('pos')
+        
+        
+        change_config(ssid, password, host, pos)
+        print(f"SSID: {ssid}, Password: {password}, Host: {host}, POS: {pos}")
+        return jsonify({"status": "success", "message": "Konfiguration aktualisiert"})
+    else:
+        return jsonify({"status": "error", "message": "Nicht angemeldet"})
+
 
 @app.route('/fetch_rfid', methods=['GET'])
 def fetch_rfid():

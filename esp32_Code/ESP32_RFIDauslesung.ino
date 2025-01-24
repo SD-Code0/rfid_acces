@@ -9,11 +9,11 @@ MFRC522 mfrc522(SS_PIN, RST_PIN);
 
 // Bitte ändere volgende werte ensprechend mit ausnahme des ports
 
-const char* ssid = "H304"; // W-lan Name
-const char* password = "VTEa26-2426"; // W-lan Passwort
-const char* host = "192.168.188.22"; // IP des python-Servers
+const char* ssid = "tester";
+const char* password = "";
+const char* host = "123.132";
 const uint16_t port = 12345; // unverendert lassen
-const char* pos = "eingang"; // Position
+const char* pos = "a";
 
 
 

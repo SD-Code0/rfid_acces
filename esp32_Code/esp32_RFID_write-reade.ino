@@ -5,11 +5,11 @@
 #include <cmath> // Für ceil
 
 // WLAN-Daten anpassen
-const char* ssid = "H304";
-const char* password = "VTEa26-2426";
+const char* ssid = "tester";
+const char* password = "";
 
 // Serverdaten anpassen
-const char* server_ip = "192.168.188.22";
+const char* host = "123.132";
 const int server_port = 12346;
 
 // RC522 Pins anpassen!
@@ -91,7 +91,7 @@ void loop() {
 }
 
 void sendRFIDToServer(String uid) {
-  if (client.connect(server_ip, server_port)) {
+  if (client.connect(host, server_port)) {
     String message = "RFID:" + uid;
     client.println(message);
     Serial.println("Gesendet an Server: " + message);
@@ -129,7 +129,7 @@ bool fetchFernetKeyFromServer() {
   // Ein GET_FERNET Versuch, 30s warten
   bool keyFound = false;
 
-  if (client.connect(server_ip, server_port)) {
+  if (client.connect(host, server_port)) {
     Serial.println("Verbunden, sende GET_FERNET...");
     client.println("GET_FERNET");
 
