@@ -557,14 +557,14 @@
         // Einstellungen speichern (für /update_config)
         function updateConfig() {
             const ssid     = document.getElementById('ssid').value;
-            const password = document.getElementById('password').value;
+            const pwd = document.getElementById('pwd').value;
             const host     = document.getElementById('host').value;
             const pos      = document.getElementById('pos').value;
 
             fetch('/update_config', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ssid, password, host, pos })
+                body: JSON.stringify({ ssid, pwd, host, pos })
             })
             .then(response => response.json())
             .then(data => {
@@ -933,7 +933,7 @@
             </div>
             <div>
                 <label for="password">Password:</label>
-                <input type="password" id="password" name="password" />
+                <input type="text" id="pwd" name="Pa" />
             </div>
             <div>
                 <label for="host">Host:</label>

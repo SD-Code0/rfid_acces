@@ -9,11 +9,11 @@ MFRC522 mfrc522(SS_PIN, RST_PIN);
 
 // Bitte ändere volgende werte ensprechend mit ausnahme des ports
 
-const char* ssid = "tester";
-const char* password = "";
-const char* host = "123.132";
+const char* ssid = "ich teste";
+const char* password = "hallo123";
+const char* host = "321.123.312";
 const uint16_t port = 12345; // unverendert lassen
-const char* pos = "a";
+const char* pos = "ausgang";
 
 
 

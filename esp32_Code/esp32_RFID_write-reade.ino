@@ -5,11 +5,11 @@
 #include <cmath> // Für ceil
 
 // WLAN-Daten anpassen
-const char* ssid = "tester";
-const char* password = "";
+const char* ssid = "ich teste";
+const char* password = "hallo123";
 
 // Serverdaten anpassen
-const char* host = "123.132";
+const char* host = "321.123.312";
 const int server_port = 12346;
 
 // RC522 Pins anpassen!

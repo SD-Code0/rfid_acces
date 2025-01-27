@@ -131,7 +131,7 @@ def update_config_route():
     if 'logged_in' in session:
         data = request.get_json()
         ssid = data.get('ssid')
-        password = data.get('password')
+        password = data.get('pwd')
         host = data.get('host')
         pos = data.get('pos')
         
