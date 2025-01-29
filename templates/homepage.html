@@ -209,6 +209,9 @@
     </style>
 
     <script>
+        /* ========================================================================
+           Globale Variablen (für fetch + Modal-Daten)
+        ======================================================================== */
         let addUserData = null;
         let deleteUserData = null;
         let addedUserInfo = null;
@@ -217,7 +220,9 @@
         let logDateToDelete = null;
         let deleteDevicePosition = null;
 
-        // Tabs öffnen
+        /* ========================================================================
+           Tabs öffnen
+        ======================================================================== */
         function openTab(event, tabName) {
             event.preventDefault();
             var tabContent = document.getElementsByClassName("tab-content");
@@ -232,7 +237,9 @@
             event.currentTarget.classList.add("active");
         }
 
-        // Sub-Tabs öffnen
+        /* ========================================================================
+           Sub-Tabs öffnen (z.B. in "Benutzerverwaltung" -> Untertabs)
+        ======================================================================== */
         function openSubTab(event, parentId, subTabId) {
             event.preventDefault();
             var parent = document.getElementById(parentId);
@@ -243,11 +250,14 @@
             document.getElementById(subTabId).classList.add('active');
         }
 
-        // Benutzer laden
+        /* ========================================================================
+           Benutzer laden / anzeigen
+        ======================================================================== */
         function fetchUsers() {
             fetch('/show_users')
                 .then(response => response.json())
                 .then(users => {
+                    // Nach ID sortieren
                     users.sort((a, b) => a.id - b.id);
                     const userList = document.getElementById('user_list');
                     userList.innerHTML = '';
@@ -260,7 +270,9 @@
                 .catch(error => console.error('Error fetching users:', error));
         }
 
-        // Benutzer hinzufügen
+        /* ========================================================================
+           Benutzer hinzufügen
+        ======================================================================== */
         function addUser() {
             fetch('/add_user', {
                 method: 'POST',
@@ -278,7 +290,7 @@
                                     `<strong>Verschlüsselter Fernet-Key:</strong><br>` +
                                     `<span class="fernet-key">${data.encrypted_fernet_key || ''}</span>`;
                     showUserAddSuccessModal();
-                    fetchUsers();
+                    fetchUsers(); // Liste aktualisieren
                     document.getElementById('addUserForm').reset();
                 } else {
                     alert('Fehler beim Hinzufügen des Benutzers: ' + data.message);
@@ -290,7 +302,9 @@
             });
         }
 
-        // Modale Fenster (Benutzer hinzufügen)
+        /* ========================================================================
+           Modale Fenster -> Benutzer hinzufügen (Erfolg)
+        ======================================================================== */
         function showUserAddSuccessModal() {
             document.getElementById('userAddSuccessInfo').innerHTML = addedUserInfo;
             document.getElementById('userAddSuccessModalOverlay').classList.add('active');
@@ -299,7 +313,9 @@
             document.getElementById('userAddSuccessModalOverlay').classList.remove('active');
         }
 
-        // Modale Fenster (Benutzer löschen)
+        /* ========================================================================
+           Modale Fenster -> Benutzer löschen
+        ======================================================================== */
         function showUserDeleteModal() {
             document.getElementById('userDeleteModalOverlay').classList.add('active');
         }
@@ -345,7 +361,9 @@
             document.getElementById('userNotFoundModalOverlay').classList.remove('active');
         }
 
-        // Abmeldung
+        /* ========================================================================
+           Abmeldung
+        ======================================================================== */
         function showLogoutModal() {
             document.getElementById('logoutModalOverlay').classList.add('active');
         }
@@ -357,7 +375,9 @@
             window.location.href = "{{ url_for('logout') }}";
         }
 
-        // Server-Steuerung
+        /* ========================================================================
+           Server-Steuerung (Shutdown / Restart)
+        ======================================================================== */
         function showShutdownModal() {
             document.getElementById('shutdownModalOverlay').classList.add('active');
         }
@@ -400,7 +420,9 @@
             .catch(error => console.error('Error restarting server:', error));
         }
 
-        // Logs
+        /* ========================================================================
+           Logs
+        ======================================================================== */
         function fetchLogs(date) {
             fetch('/get_logs', {
                 method: 'POST',
@@ -415,7 +437,12 @@
                 logList.innerHTML = '';
                 logs.forEach(log => {
                     const logItem = document.createElement('div');
-                    logItem.textContent = `Timestamp: ${log.timestamp}, Log ID: ${log.log_entry}, User ID: ${log.user_id}, RFID: ${log.rfid_uid}, Position: ${log.position}`;
+                    logItem.textContent = 
+                        `Timestamp: ${log.timestamp}, ` +
+                        `Log ID: ${log.log_entry}, ` +
+                        `User ID: ${log.user_id}, ` +
+                        `RFID: ${log.rfid_uid}, ` +
+                        `Position: ${log.position}`;
                     logList.appendChild(logItem);
                 });
             })
@@ -463,7 +490,9 @@
             document.getElementById('logsNotFoundModalOverlay').classList.remove('active');
         }
 
-        // Geräte
+        /* ========================================================================
+           Geräte
+        ======================================================================== */
         function showDevicesDeleteModal() {
             document.getElementById('devicesDeleteModalOverlay').classList.add('active');
         }
@@ -495,7 +524,8 @@
             });
         }
         function showDevicesDeleteSuccessModal() {
-            document.getElementById('devicesDeleteSuccessInfo').innerHTML = `Geräte an Position <strong>${deleteDevicePosition}</strong> wurden erfolgreich gelöscht.`;
+            document.getElementById('devicesDeleteSuccessInfo').innerHTML = 
+                `Geräte an Position <strong>${deleteDevicePosition}</strong> wurden erfolgreich gelöscht.`;
             document.getElementById('devicesDeleteSuccessModalOverlay').classList.add('active');
         }
         function closeDevicesDeleteSuccessModal() {
@@ -527,20 +557,21 @@
                     deviceList.innerHTML = '';
                     devices.forEach(device => {
                         const deviceItem = document.createElement('div');
-                        deviceItem.textContent = `
-                            ID: ${device.device_id}, 
-                            Actor Domain: ${device.actor_domain}, 
-                            Service: ${device.service}, 
-                            Entity ID: ${device.entity_id}, 
-                            Position: ${device.device_position}
-                        `;
+                        deviceItem.textContent = 
+                            `ID: ${device.device_id}, `+
+                            `Actor Domain: ${device.actor_domain}, ` +
+                            `Service: ${device.service}, ` +
+                            `Entity ID: ${device.entity_id}, ` +
+                            `Position: ${device.device_position}`;
                         deviceList.appendChild(deviceItem);
                     });
                 })
                 .catch(error => console.error('Fehler beim Abrufen der Geräte:', error));
         }
 
-        // RFID per Button einlesen
+        /* ========================================================================
+           RFID per Button einlesen
+        ======================================================================== */
         function fetchRFID() {
             fetch('/fetch_rfid')
                 .then(response => response.json())
@@ -554,12 +585,14 @@
                 .catch(error => console.error('Fehler beim Abrufen der RFID:', error));
         }
 
-        // Einstellungen speichern (für /update_config)
+        /* ========================================================================
+           Einstellungen speichern (/update_config)
+        ======================================================================== */
         function updateConfig() {
-            const ssid     = document.getElementById('ssid').value;
-            const pwd = document.getElementById('pwd').value;
-            const host     = document.getElementById('host').value;
-            const pos      = document.getElementById('pos').value;
+            const ssid  = document.getElementById('ssid').value;
+            const pwd   = document.getElementById('pwd').value;
+            const host  = document.getElementById('host').value;
+            const pos   = document.getElementById('pos').value;
 
             fetch('/update_config', {
                 method: 'POST',
@@ -580,22 +613,24 @@
             });
         }
 
-        // Events beim Laden der Seite
+        /* ========================================================================
+           Events beim Laden der Seite
+        ======================================================================== */
         document.addEventListener('DOMContentLoaded', function() {
-            // Benutzer hinzufügen
+            // Formular: Benutzer hinzufügen
             document.getElementById('addUserForm').addEventListener('submit', function(event) {
                 event.preventDefault();
                 const formData = new FormData(event.target);
                 addUserData = {
                     username: formData.get('username'),
-                    rfid: formData.get('rfid'),
-                    role: formData.get('role'),
-                    file: formData.get('filePath')
+                    rfid:     formData.get('rfid'),
+                    role:     formData.get('role'),
+                    file:     formData.get('filePath')
                 };
                 addUser();
             });
 
-            // Benutzer löschen
+            // Formular: Benutzer löschen
             document.getElementById('deleteUserForm').addEventListener('submit', function(event) {
                 event.preventDefault();
                 const formData = new FormData(event.target);
@@ -623,7 +658,7 @@
                 });
             });
 
-            // Logs abrufen
+            // Formular: Logs abrufen
             document.getElementById('getLogsForm').addEventListener('submit', function(event) {
                 event.preventDefault();
                 const formData = new FormData(event.target);
@@ -649,7 +684,7 @@
                 });
             });
 
-            // Logs löschen
+            // Formular: Logs löschen
             document.getElementById('deleteLogsForm').addEventListener('submit', function(event) {
                 event.preventDefault();
                 const formData = new FormData(event.target);
@@ -675,14 +710,14 @@
                 });
             });
 
-            // Geräte hinzufügen
+            // Formular: Gerät hinzufügen
             document.getElementById('addDeviceForm').addEventListener('submit', function(event) {
                 event.preventDefault();
                 const formData = new FormData(event.target);
                 const addDeviceData = {
-                    actor_domain: formData.get('actor_domain'),
-                    service: formData.get('service'),
-                    entity_id: formData.get('entity_id'),
+                    actor_domain:    formData.get('actor_domain'),
+                    service:         formData.get('service'),
+                    entity_id:       formData.get('entity_id'),
                     device_position: formData.get('device_position')
                 };
 
@@ -718,7 +753,7 @@
                 });
             });
 
-            // Geräte löschen
+            // Formular: Geräte löschen
             document.getElementById('deleteDevicesForm').addEventListener('submit', function(event) {
                 event.preventDefault();
                 const formData = new FormData(event.target);
@@ -728,6 +763,7 @@
         });
     </script>
 </head>
+
 <body>
 <div class="navbar">
     {% if session.get('logged_in') %}
@@ -745,7 +781,9 @@
 </div>
 
 <div class="container">
-    <!-- Login-Tab -->
+    <!-- =========================================================
+         Login-Tab
+    ========================================================= -->
     <div id="Login" class="content tab-content {% if not session.get('logged_in') %}active{% endif %}">
         <h2>Admin Login</h2>
         <form action="{{ url_for('login') }}" method="post">
@@ -773,10 +811,14 @@
     </div>
 
     {% if session.get('logged_in') %}
-    <!-- Benutzerverwaltung -->
+    <!-- =========================================================
+         Benutzerverwaltung
+    ========================================================= -->
     <div id="TabUser" class="content tab-content">
         <h2>Benutzerverwaltung</h2>
-        <div class="tabs-info">Fügen Sie Benutzer hinzu, löschen Sie welche oder zeigen Sie die Liste an.</div>
+        <div class="tabs-info">
+            Fügen Sie Benutzer hinzu, löschen Sie welche oder zeigen Sie die Liste an.
+        </div>
         <button onclick="openSubTab(event, 'TabUser', 'UserAdd')">Benutzer hinzufügen</button>
         <button onclick="openSubTab(event, 'TabUser', 'UserDelete')">Benutzer löschen</button>
         <button onclick="openSubTab(event, 'TabUser', 'UserShow')">Benutzer anzeigen</button>
@@ -827,10 +869,14 @@
         </div>
     </div>
 
-    <!-- Logs -->
+    <!-- =========================================================
+         Logs
+    ========================================================= -->
     <div id="TabLogs" class="content tab-content">
         <h2>Logs</h2>
-        <div class="tabs-info">Hier können Sie Logs abrufen oder löschen.</div>
+        <div class="tabs-info">
+            Hier können Sie Logs abrufen oder löschen.
+        </div>
         <button onclick="openSubTab(event, 'TabLogs', 'LogsGet')">Logs abrufen</button>
         <button onclick="openSubTab(event, 'TabLogs', 'LogsDelete')">Logs löschen</button>
 
@@ -863,10 +909,14 @@
         </div>
     </div>
 
-    <!-- Geräte -->
+    <!-- =========================================================
+         Geräte
+    ========================================================= -->
     <div id="TabDevices" class="content tab-content">
         <h2>Geräteverwaltung</h2>
-        <div class="tabs-info">Fügen Sie Geräte hinzu oder listen/löschen Sie diese auf.</div>
+        <div class="tabs-info">
+            Fügen Sie Geräte hinzu oder listen/löschen Sie diese auf.
+        </div>
         <button onclick="openSubTab(event, 'TabDevices', 'DevicesAdd')">Gerät hinzufügen</button>
         <button onclick="openSubTab(event, 'TabDevices', 'DevicesShow')">Geräte anzeigen</button>
         <button onclick="openSubTab(event, 'TabDevices', 'DevicesDelete')">Geräte löschen</button>
@@ -901,6 +951,7 @@
             <h3>Gespeicherte Geräte</h3>
             <button id="listDevicesButton">Geräte auflisten</button>
             <div id="device_list" style="margin-top:10px;"></div>
+
             <script>
                 document.getElementById('listDevicesButton').addEventListener('click', function() {
                     fetchDevices();
@@ -922,10 +973,14 @@
         </div>
     </div>
 
-    <!-- Neuer "Einstellungen"-Tab -->
+    <!-- =========================================================
+         Neuer "Einstellungen"-Tab
+    ========================================================= -->
     <div id="TabSettings" class="content tab-content">
         <h2>Einstellungen</h2>
-        <div class="tabs-info">Hier können Sie WLAN- und Host-Einstellungen vornehmen.</div>
+        <div class="tabs-info">
+            Hier können Sie WLAN- und Host-Einstellungen vornehmen.
+        </div>
         <form id="settingsForm" onsubmit="event.preventDefault(); updateConfig();">
             <div>
                 <label for="ssid">SSID:</label>
@@ -949,7 +1004,9 @@
         </form>
     </div>
 
-    <!-- Server -->
+    <!-- =========================================================
+         Server
+    ========================================================= -->
     <div id="TabShutdown" class="content tab-content">
         <h2>Server</h2>
         <div class="tabs-info">Server steuern.</div>
@@ -962,6 +1019,10 @@
     </div>
     {% endif %}
 </div>
+
+<!-- ========================================================================
+     Modale Overlays
+========================================================================= -->
 
 <!-- Logout Bestätigung -->
 <div id="logoutModalOverlay" class="modal-overlay">

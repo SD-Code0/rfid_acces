@@ -9,14 +9,14 @@ import sqlite3
 import os
 
 def get_db_connection():
-    conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'user.db'))
+    conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'rfid_access_control.db'))
     cursor = conn.cursor()
     return conn, cursor
 
 def create_tables():
     conn, cursor = get_db_connection()
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS users(
+        CREATE TABLE IF NOT EXISTS admin_users(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT NOT NULL,
             passwort TEXT UNIQUE NOT NULL,
@@ -32,7 +32,7 @@ def add_user():
     username = input('Enter username: ')
     hashed_password = generate_password_hash(input('Enter password: '))
     role = input('Enter role: ')
-    cursor.execute("INSERT INTO users (username, passwort, role) VALUES (?, ?, ?)",
+    cursor.execute("INSERT INTO admin_users (username, passwort) VALUES (?, ?)",
                     (username, hashed_password, role))
     conn.commit()
     conn.close()

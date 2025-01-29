@@ -236,3 +236,17 @@ def save_data_to_db(data):
     conn, cursor = get_db_connection()
     conn.commit()
     conn.close()
+    
+#Testing admin gen
+
+def create_admin_user_table_if_not_exists():
+    conn, cursor = get_db_connection()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS admin_user (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL,
+            passwort TEXT NOT NULL
+        );
+    """)
+    conn.commit()
+    conn.close()

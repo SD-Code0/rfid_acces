@@ -5,7 +5,7 @@
 # This source file is subject to the MIT license that is bundled
 # with this source code in the file LICENSE.
 from flask import Flask, request, render_template, redirect, url_for, jsonify, session, flash
-from werkzeug.security import check_password_hash
+from werkzeug.security import check_password_hash,generate_password_hash
 from flask_socketio import SocketIO
 from flask_cors import CORS
 import os
@@ -16,7 +16,7 @@ import sqlite3
 import socket
 from espdata import start_tcp_server,start_tcp_server_port2
 from web_ui import mainpage
-from db_manager import add_user,delete_user_by_rfid,get_users,get_access_logs,delete_logs_from_db,create_tables,get_devices_by_pos,db_add_device,user_exists_by_rfid,db_delete_device,db_check_entity_id,device_exists
+from db_manager import add_user,delete_user_by_rfid,get_users,get_access_logs,delete_logs_from_db,create_tables,get_devices_by_pos,db_add_device,user_exists_by_rfid,db_delete_device,db_check_entity_id,device_exists,create_admin_user_table_if_not_exists,get_db_connection
 create_tables()
 
 
@@ -104,22 +104,63 @@ def homepage():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
-        conn, cursor = get_user_db_connection()
-        
-        in_username = request.form['username']
-        in_password = request.form['password']
-        
-        cursor.execute("SELECT id, username, passwort, role FROM users WHERE username = ?", (in_username,))
-        user_data = cursor.fetchone()
-        conn.close()
-        
-        if user_data and check_password_hash(user_data[2], in_password):
-            session['logged_in'] = True
-            return redirect(url_for('homepage'))
+    conn, cursor = get_db_connection()
+    # Prüfen, ob es die Tabelle admin_user gibt
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='admin_user';")
+    table_exists = cursor.fetchone()
+    conn.close()
+
+    if not table_exists:
+        # Tabelle existiert NICHT -> initial_admin_setup.html
+        if request.method == 'POST':
+            in_username = request.form.get('username')
+            in_password = request.form.get('password')
+
+            if not in_username or not in_password:
+                flash('Bitte Benutzername und Passwort eingeben!', 'error')
+                return render_template('initial_admin_setup.html')
+
+            # Tabelle anlegen
+            create_admin_user_table_if_not_exists()
+
+            # Admin einfügen
+            conn2, cursor2 = get_db_connection()
+            hashed_pw = generate_password_hash(in_password)
+            cursor2.execute("INSERT INTO admin_user (username, passwort) VALUES (?,?)", (in_username, hashed_pw))
+            conn2.commit()
+            conn2.close()
+
+            flash('Erster Admin erfolgreich angelegt. Bitte jetzt einloggen!', 'info')
+            return redirect(url_for('login'))
+
+        # GET-Methode -> Zeige Setup-Template
+        return render_template('initial_admin_setup.html')
+    else:
+        # Tabelle existiert -> Normales Login
+        if request.method == 'POST':
+            in_username = request.form.get('username')
+            in_password = request.form.get('password')
+
+            conn3, cursor3 = get_db_connection()
+            cursor3.execute("SELECT id, username, passwort FROM admin_user WHERE username = ?", (in_username,))
+            user_data = cursor3.fetchone()
+            conn3.close()
+
+            if user_data:
+                if check_password_hash(user_data[2], in_password):
+                    session['logged_in'] = True
+                    flash('Erfolgreich eingeloggt!', 'info')
+                    return redirect(url_for('homepage'))
+                else:
+                    flash('Falsches Passwort!', 'error')
+            else:
+                flash('Benutzername nicht gefunden.', 'error')
+
+            return render_template('homepage.html')  # Gleiche Seite, um Meldung zu zeigen
         else:
-            flash('Ungültiger Benutzername oder Passwort')
-    return render_template('homepage.html')
+            # GET -> Zeige ganz normales Login in homepage.html
+            return render_template('homepage.html')
+
 
 @app.route('/logout')
 def logout():
@@ -352,5 +393,11 @@ def get_devices():
     except Exception as e:
         print("Fehler beim Abrufen der Geräte:", str(e))  # Debug
         return jsonify({'status': 'error', 'message': str(e)}), 500
+    
+    # Testing admin gen
+    
+    
+    
+    
 if __name__ == '__main__':
     socketio.run(app, host='127.0.0.1', port=5001, debug=False)
