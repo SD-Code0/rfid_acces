@@ -105,7 +105,7 @@ def homepage():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     conn, cursor = get_db_connection()
-    # Prüfen, ob es die Tabelle admin_user gibt
+    # Prüfen ob es die Tabelle admin_user gibt
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='admin_user';")
     table_exists = cursor.fetchone()
     conn.close()
@@ -161,6 +161,47 @@ def login():
             # GET -> Zeige ganz normales Login in homepage.html
             return render_template('homepage.html')
 
+
+@app.route('/add_admin_user', methods=['POST'])
+def add_admin_user():
+    if 'logged_in' not in session:
+        return jsonify({"status": "error", "message": "Nicht eingeloggt."}), 401
+
+    data = request.get_json()
+    admin_username = data.get('username')
+    admin_password = data.get('password')
+
+    if not admin_username or not admin_password:
+        return jsonify({"status": "error", "message": "Username/Passwort fehlen."}), 400
+
+    conn, cursor = get_db_connection()
+    # Prüfen, ob admin_user existiert (sollte ja), sonst create_admin_user_table_if_not_exists()
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='admin_user';")
+    table_exists = cursor.fetchone()
+    if not table_exists:
+        # Falls es die Tabelle nicht gibt, anlegen (zur Sicherheit)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS admin_user(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL,
+                passwort TEXT NOT NULL
+            );
+        """)
+
+    # Prüfen, ob Username schon belegt:
+    cursor.execute("SELECT id FROM admin_user WHERE username = ?", (admin_username,))
+    row = cursor.fetchone()
+    if row:
+        conn.close()
+        return jsonify({"status": "error", "message": "Benutzername existiert bereits."}), 409
+
+    # Hashen & einfügen
+    hashed = generate_password_hash(admin_password)
+    cursor.execute("INSERT INTO admin_user (username, passwort) VALUES (?,?)", (admin_username, hashed))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"status": "success", "message": "Admin wurde angelegt."})
 
 @app.route('/logout')
 def logout():
