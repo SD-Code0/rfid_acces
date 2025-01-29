@@ -207,7 +207,7 @@ def add_admin_user():
 def logout():
     session.pop('logged_in', None)
     return redirect(url_for('login'))
-
+# Route zum Aktualisieren der ESP32-Konfiguration
 @app.route('/update_config', methods=['POST'])
 def update_config_route():
     if 'logged_in' in session:
@@ -233,7 +233,7 @@ def fetch_rfid():
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client_socket.connect((tcp_server_ip, tcp_server_port))
 
-        client_socket.sendall(b'GET_RFID')  # Beispiel-Nachricht zum Abrufen der RFID
+        client_socket.sendall(b'GET_RFID')  
         rfid = client_socket.recv(1024).decode('utf-8')
         client_socket.close()
 
@@ -441,4 +441,4 @@ def get_devices():
     
     
 if __name__ == '__main__':
-    socketio.run(app, host='127.0.0.1', port=5001, debug=False)
+    socketio.run(app, host='0.0.0.0', port=5001, debug=False)

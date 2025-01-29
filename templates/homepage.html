@@ -1,9 +1,9 @@
 <!-- 
  # This file is part of the Project RFID Access contoll .
 # 
-# (c) 2024 SD-Code0
+ # (c) 2024 SD-Code0
 # 
-# This source file is subject to the MIT license that is bundled
+ # This source file is subject to the MIT license that is bundled
 # with this source code in the file LICENSE.
 -->
 
@@ -217,7 +217,7 @@
         let logDateToDelete = null;
         let deleteDevicePosition = null;
 
-        // Tabs öffnen
+        // ==================== Tabs öffnen ====================
         function openTab(event, tabName) {
             event.preventDefault();
             var tabContent = document.getElementsByClassName("tab-content");
@@ -243,7 +243,7 @@
             document.getElementById(subTabId).classList.add('active');
         }
 
-        // Benutzer laden
+        // ==================== Benutzer laden ====================
         function fetchUsers() {
             fetch('/show_users')
                 .then(response => response.json())
@@ -260,7 +260,7 @@
                 .catch(error => console.error('Error fetching users:', error));
         }
 
-        // Benutzer hinzufügen
+        // ==================== Benutzer hinzufügen ====================
         function addUser() {
             fetch('/add_user', {
                 method: 'POST',
@@ -299,7 +299,7 @@
             document.getElementById('userAddSuccessModalOverlay').classList.remove('active');
         }
 
-        // Modale Fenster (Benutzer löschen)
+        // ==================== Benutzer löschen ====================
         function showUserDeleteModal() {
             document.getElementById('userDeleteModalOverlay').classList.add('active');
         }
@@ -345,7 +345,7 @@
             document.getElementById('userNotFoundModalOverlay').classList.remove('active');
         }
 
-        // Abmeldung
+        // ==================== Abmeldung ====================
         function showLogoutModal() {
             document.getElementById('logoutModalOverlay').classList.add('active');
         }
@@ -357,7 +357,7 @@
             window.location.href = "{{ url_for('logout') }}";
         }
 
-        // Server-Steuerung
+        // ==================== Server-Steuerung ====================
         function showShutdownModal() {
             document.getElementById('shutdownModalOverlay').classList.add('active');
         }
@@ -400,7 +400,7 @@
             .catch(error => console.error('Error restarting server:', error));
         }
 
-        // Logs
+        // ==================== Logs ====================
         function fetchLogs(date) {
             fetch('/get_logs', {
                 method: 'POST',
@@ -465,7 +465,7 @@
             document.getElementById('logsNotFoundModalOverlay').classList.remove('active');
         }
 
-        // Geräte
+        // ==================== Geräte ====================
         function showDevicesDeleteModal() {
             document.getElementById('devicesDeleteModalOverlay').classList.add('active');
         }
@@ -542,7 +542,8 @@
                 .catch(error => console.error('Fehler beim Abrufen der Geräte:', error));
         }
 
-        // RFID per Button einlesen
+        // ==================== RFID per Button einlesen ====================
+        // 1) Für "Benutzer hinzufügen" -> rfid_add
         function fetchRFID() {
             fetch('/fetch_rfid')
                 .then(response => response.json())
@@ -556,7 +557,21 @@
                 .catch(error => console.error('Fehler beim Abrufen der RFID:', error));
         }
 
-        // Einstellungen speichern (für /update_config)
+        // 2) Für "Benutzer löschen" -> rfid_delete
+        function fetchRFIDDelete() {
+            fetch('/fetch_rfid')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.rfid) {
+                        document.getElementById('rfid_delete').value = data.rfid;
+                    } else {
+                        alert('RFID konnte nicht abgerufen werden.');
+                    }
+                })
+                .catch(error => console.error('Fehler beim Abrufen der RFID:', error));
+        }
+
+        // ==================== Einstellungen speichern ====================
         function updateConfig() {
             const ssid  = document.getElementById('ssid').value;
             const pwd   = document.getElementById('password').value;
@@ -582,6 +597,7 @@
             });
         }
 
+        // ==================== DOMContentLoaded ====================
         document.addEventListener('DOMContentLoaded', function() {
 
             // Benutzer hinzufügen
@@ -727,44 +743,11 @@
                 deleteDevicePosition = formData.get('device_position_delete');
                 showDevicesDeleteModal();
             });
-
-            // NEU: Admin hinzufügen
-            const addAdminForm = document.getElementById('addAdminForm');
-            if (addAdminForm) {
-                addAdminForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    const formData = new FormData(e.target);
-                    const adminData = {
-                        username: formData.get('admin_username'),
-                        password: formData.get('admin_password')
-                    };
-
-                    fetch('/add_admin_user', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(adminData)
-                    })
-                    .then(resp => resp.json())
-                    .then(data => {
-                        if (data.status === "success") {
-                            alert("Neuer Admin erfolgreich angelegt!");
-                            e.target.reset();
-                        } else {
-                            alert("Fehler beim Anlegen: " + data.message);
-                        }
-                    })
-                    .catch(err => {
-                        console.error('Error adding admin:', err);
-                        alert('Ein Fehler ist aufgetreten.');
-                    });
-                });
-            }
         });
     </script>
 </head>
 <body>
 
-<!-- Navbar -->
 <div class="navbar">
     {% if session.get('logged_in') %}
         <a href="#" class="tab-link" onclick="openTab(event, 'TabUser')">Benutzerverwaltung</a>
@@ -773,7 +756,7 @@
         <a href="#" class="tab-link" onclick="openTab(event, 'TabSettings')">Einstellungen</a>
         <a href="#" class="tab-link" onclick="openTab(event, 'TabShutdown')">Server</a>
 
-        <!-- Rechts ausrichten -->
+        <!-- Rechts ausgerichtet (Logout & Admin hinzufügen) -->
         <div style="float:right; margin-right:20px;">
             <a href="#" class="tab-link" onclick="openTab(event, 'TabAddAdmin')">Admin hinzufügen</a>
             <a href="#" class="tab-link" onclick="showLogoutModal()">Logout</a>
@@ -852,6 +835,8 @@
                 <div>
                     <label for="rfid_delete">RFID:</label>
                     <input type="text" id="rfid_delete" name="rfid_delete" required>
+                    <!-- RFID auslesen-Button für Löschen -->
+                    <button type="button" onclick="fetchRFIDDelete()">RFID auslesen</button>
                 </div>
                 <div>
                     <input type="submit" value="Benutzer löschen">

@@ -4,3 +4,4 @@ flask_cors
 cryptography
 werkzeug
 requests
+sqlite3
