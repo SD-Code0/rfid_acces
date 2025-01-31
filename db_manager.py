@@ -227,9 +227,9 @@ def delete_logs_from_db(date):
     conn.commit()
     conn.close()
 
-def log_access(user_id, position):
+def log_access(user_roll, position):
     conn, cursor = get_db_connection()
-    cursor.execute("INSERT INTO access_logs (user_id,position) VALUES (?,?)", (user_id,position))
+    cursor.execute("INSERT INTO access_logs (user_id,position) VALUES (?,?)", (user_roll,position))
     conn.commit()
     conn.close()
 def save_data_to_db(data):
