@@ -9,6 +9,8 @@ from werkzeug.security import check_password_hash,generate_password_hash
 from flask_socketio import SocketIO
 from flask_cors import CORS
 import os
+import time
+import requests
 import subprocess
 import threading
 import web_ui
@@ -64,11 +66,38 @@ def change_config(ssid, password, host, pos):
         file2.writelines(updated_lines2)
 
     print("Konfigurationswerte in beiden Dateien erfolgreich aktualisiert.")
+
+def wait_for_flask():
+    """ Wartet, bis Flask auf Port 5002 erreichbar ist """
+    flask_url = "http://127.0.0.1:5002/status"
+    max_attempts = 10  # Maximal 10 Versuche
+    wait_time = 3  # Wartezeit in Sekunden zwischen den Versuchen
+    
+    for attempt in range(max_attempts):
+        try:
+            response = requests.get(flask_url, timeout=3)
+            if response.status_code == 200:
+                print("Flask ist bereit!")
+                webui_thread = threading.Thread(target=run_webui, daemon = True)
+                webui_thread.start()
+                time.sleep(10)
+                return True
+        except requests.exceptions.ConnectionError:
+            print(f"Flask noch nicht bereit... Versuch {attempt+1}/{max_attempts}")
+        
+        time.sleep(wait_time)
+    
+    print("Fehler: Flask konnte nicht gestartet werden!")
+    return False
+
+
+
 def run_webui():
+    
     web_ui.socketio.run(web_ui.app,host='0.0.0.0', port=5002, debug=False)
 
-webui_thread = threading.Thread(target=run_webui, daemon = True)
-webui_thread.start()
+#webui_thread = threading.Thread(target=run_webui, daemon = True)
+#webui_thread.start()
 
 tcp_thread = threading.Thread(target=start_tcp_server, daemon=True)
 tcp_thread.start()

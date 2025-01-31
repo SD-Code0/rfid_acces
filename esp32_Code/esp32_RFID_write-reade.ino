@@ -5,11 +5,11 @@
 #include <cmath> // Für ceil
 
 // WLAN-Daten anpassen
-const char* ssid = "";
-const char* password = "None";
+const char* ssid = "H304";
+const char* password = "VTEa26-2426";
 
 // Serverdaten anpassen
-const char* host = "";
+const char* host = "192.168.188.31";
 const int server_port = 12346;
 
 // RC522 Pins anpassen!
@@ -38,7 +38,7 @@ void setup() {
   Serial.print("IP-Adresse: ");
   Serial.println(WiFi.localIP());
 
-  SPI.begin(13,12,11);
+  SPI.begin(13,12,11); // SCK, MISO, MOSI pins
   mfrc522.PCD_Init();
   Serial.println("RC522 RFID Reader initialisiert.");
 }
