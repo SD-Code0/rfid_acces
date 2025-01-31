@@ -76,9 +76,9 @@ def add_user(username, rfid_uid, role, image_path=None):
         encrypted_fernetkey = global_fernet.encrypt(fernet_key)
 
         encrypted_username = fernet.encrypt(username.encode())
-        encrypted_role = fernet.encrypt(role.encode())
+        #encrypted_role = fernet.encrypt(role.encode())
         cursor.execute("INSERT INTO users (username, rfid_uid, role, image) VALUES (?, ?, ?, ?)",
-                    (encrypted_username, rfid_uid, encrypted_role, encrypted_image))
+                    (encrypted_username, rfid_uid, role, encrypted_image))
         conn.commit()
         return "success" , encrypted_fernetkey.decode("utf-8")
 
@@ -98,18 +98,23 @@ def delete_user_by_rfid(rfid_uid):
 
 def get_users():
     conn, cursor = get_db_connection()
-    cursor.execute("SELECT id, rfid_uid FROM users")
+    cursor.execute("SELECT id, rfid_uid, role FROM users")
     users = cursor.fetchall()
     conn.close()
-    
+
     user_list = []
     for user in users:
+        # Falls role Bytes enthält, vorher als UTF-8 decodieren (oder Base64)
+        role_data = user[2]
+        if isinstance(role_data, bytes):
+            role_data = role_data.decode("utf-8", errors="replace")
+
         user_dict = {
-            'id': user[0],
+            'id': role_data,     # "role" landet hier als "id"
             'rfid_uid': user[1]
         }
         user_list.append(user_dict)
-    
+
     return user_list
     
 

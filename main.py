@@ -308,7 +308,7 @@ def show_users():
     if 'logged_in' in session:
         users = get_users()
         
-        users.sort(key=lambda user: user['id'])
+        #users.sort(key=lambda user: user['id'])
         return jsonify(users)
     else:
         return redirect(url_for('login'))
