@@ -9,7 +9,7 @@ const char* ssid = "H304";
 const char* password = "VTEa26-2426";
 
 // Serverdaten anpassen
-const char* host = "192.168.188.31";
+const char* host = "192.168.188.43";
 const int server_port = 12346;
 
 // RC522 Pins anpassen!
