@@ -55,7 +55,6 @@ def add_user(username, rfid_uid, role, image_path=None):
     try:
         
         fernet_key = Fernet.generate_key()
-        print(fernet_key)
         fernet = Fernet(fernet_key)
         
         if image_path:
@@ -126,7 +125,6 @@ def get_user_by_rfid(rfid_uid, fernet_key):
     username = user[1]
     role = user[2]
     image = user[3]
-    print(fernet_key) # debug
     fernet = Fernet(fernet_key)
     username = fernet.decrypt(username)
     role = fernet.decrypt(role)
