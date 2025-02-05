@@ -9,7 +9,7 @@ import socket
 from access_conroll import access_door,denie_access
 from cryptography.fernet import Fernet
 import os
-
+import base64
 
 def verify_challange(challange_raw, challange_encrypted):
     fernet_key = open("challange_fernet_key.pem", "rb").read()
@@ -21,8 +21,17 @@ def verify_challange(challange_raw, challange_encrypted):
         return False
     
 
+def fix_padding(encoded_data):
+    missing_padding = len(encoded_data) % 4
+    if missing_padding:
+        encoded_data += '=' * (4 - missing_padding)
+    return encoded_data
+
+
+
 def decrypt_data(fernet_key_encoded):
     if fernet_key_encoded:
+        fernet_key_encoded = fix_padding(fernet_key_encoded)
         key_fernet_path = os.path.join(os.path.dirname(__file__), "fernet_key.pem")
         fernet_key = open(key_fernet_path, "rb").read().strip()
         fernet = Fernet(fernet_key)
