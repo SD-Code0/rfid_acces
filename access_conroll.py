@@ -82,6 +82,7 @@ def access_door(rfid_uid,fernet_key,position):
 
     else:
         print(rfid_uid,fernet_key,position)#debug
+        print(user)#debug
         denie_access()
 
 

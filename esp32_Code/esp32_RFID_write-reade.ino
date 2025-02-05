@@ -212,6 +212,7 @@ void writeFernetKeyToCard(String fKey) {
 String getUID() {
   String uidStr;
   for (byte i = 0; i < mfrc522.uid.size; i++) {
+    uidStr += String(mfrc522.uid.uidByte[i] < 0x10 ? "0" : "");
     uidStr += String(mfrc522.uid.uidByte[i], HEX);
   }
   uidStr.toUpperCase();
