@@ -132,7 +132,7 @@ def get_user_by_rfid(rfid_uid, fernet_key):
 
     fernet = Fernet(fernet_key)
     username = fernet.decrypt(enc_username)
-    role = fernet.decrypt(enc_role)
+    role = enc_role
     image_dec = fernet.decrypt(enc_image)
 
     user = (user_id, username, role, image_dec)
