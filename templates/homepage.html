@@ -274,7 +274,7 @@
                 if (data.status === "success") {
                     addedUserInfo = `Benutzername: ${data.username}<br>` +
                                     `RFID: ${data.rfid}<br>` +
-                                    `Rolle: ${data.user_uid}<br><br>` +
+                                    `User-ID: ${data.user_uid}<br><br>` +
                                     `<strong>Verschlüsselter Fernet-Key:</strong><br>` +
                                     `<span class="fernet-key">${data.encrypted_fernet_key || ''}</span>`;
                     showUserAddSuccessModal();
@@ -816,7 +816,7 @@
                     <button type="button" onclick="fetchRFID()">RFID auslesen</button>
                 </div>
                 <div>
-                    <label for="user_uid_add">Rolle:</label>
+                    <label for="user_uid_add">User-ID:</label>
                     <input type="text" id="user_uid_add" name="user_uid" required>
                 </div>
                 <div>

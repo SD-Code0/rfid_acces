@@ -62,10 +62,10 @@ def home():
                     document.getElementById('Username').classList.add('hidden');
                 }
                 if (data.user_uid) {
-                    document.getElementById('Rolle').innerText = 'Rolle: ' + data.user_uid;
-                    document.getElementById('Rolle').classList.remove('hidden');
+                    document.getElementById('User-ID').innerText = 'User-ID: ' + data.user_uid;
+                    document.getElementById('User-ID').classList.remove('hidden');
                 } else {
-                    document.getElementById('Rolle').classList.add('hidden');
+                    document.getElementById('User-ID').classList.add('hidden');
                 }
                 if (data.image_data) {
                     document.getElementById('image').src = 'data:image/png;base64,' + data.image_data;
@@ -88,10 +88,10 @@ def home():
                             document.getElementById('Username').classList.add('hidden');
                         }
                         if (data.user_uid) {
-                            document.getElementById('Rolle').innerText = 'Rolle: ' + data.user_uid;
-                            document.getElementById('Rolle').classList.remove('hidden');
+                            document.getElementById('User-ID').innerText = 'User-ID: ' + data.user_uid;
+                            document.getElementById('User-ID').classList.remove('hidden');
                         } else {
-                            document.getElementById('Rolle').classList.add('hidden');
+                            document.getElementById('User-ID').classList.add('hidden');
                         }
                         if (data.image_data) {
                             document.getElementById('image').src = 'data:image/png;base64,' + data.image_data;
@@ -110,7 +110,7 @@ def home():
             <img id="image" src="default.png" alt="Image" width="200">
             <p>Status: <span id="Status">Geschlossen</span></p>
             <p id="Username" class="hidden">Username: </p>
-            <p id="Rolle" class="hidden">Rolle: </p>
+            <p id="User-ID" class="hidden">User-ID: </p>
         </div>
     </body>
     </html>
