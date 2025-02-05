@@ -87,6 +87,7 @@ def start_tcp_server_port2():
                 client_socket.sendall(b"NO_KEY")
         elif data == "ERFOLG":
             stored_enc_key = None
+            print("Erfolg erhalten")
 
         elif data.startswith("ENC:"):
             # Fernet-Key speichern
