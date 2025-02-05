@@ -71,7 +71,7 @@ def access_door(rfid_uid,fernet_key,position):
                 'status': 'Success'
             })
             threading.Thread(target=open_door(device_data), daemon=True).start()
-            log_access(user[2],device_pos)
+            threading.Thread(target=log_access(user[2],device_pos), daemon=True).start()
             if response.status_code == 200:
                 print("Benutzerdaten erfolgreich an die Web-UI übergeben")
                 threading.Thread(target=default_screen, daemon=True).start()
