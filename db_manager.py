@@ -21,7 +21,7 @@ def create_tables():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT NOT NULL,
             rfid_uid TEXT UNIQUE NOT NULL,
-            role TEXT NOT NULL,
+            user_uid TEXT NOT NULL,
             image TEXT
         )
     ''')
@@ -32,7 +32,7 @@ def create_tables():
             user_id INTEGER NOT NULL,
             position TEXT NOT NULL,
             access_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(role) 
+            FOREIGN KEY (user_id) REFERENCES users(user_uid) 
         )
     ''')
     
@@ -50,7 +50,7 @@ def create_tables():
     conn.commit()
     conn.close()
 
-def add_user(username, rfid_uid, role, image_path=None):
+def add_user(username, rfid_uid, user_uid, image_path=None):
     conn, cursor = get_db_connection()
     try:
         
@@ -74,9 +74,9 @@ def add_user(username, rfid_uid, role, image_path=None):
         
         encrypted_fernetkey = global_fernet.encrypt(fernet_key)
         encrypted_username = fernet.encrypt(username.encode())
-        #encrypted_role = fernet.encrypt(role.encode())
-        cursor.execute("INSERT INTO users (username, rfid_uid, role, image) VALUES (?, ?, ?, ?)",
-                    (encrypted_username, rfid_uid, role, encrypted_image))
+        #encrypted_user_uid = fernet.encrypt(user_uid.encode())
+        cursor.execute("INSERT INTO users (username, rfid_uid, user_uid, image) VALUES (?, ?, ?, ?)",
+                    (encrypted_username, rfid_uid, user_uid, encrypted_image))
         conn.commit()
         return "success" , encrypted_fernetkey.decode("utf-8")
 
@@ -96,19 +96,19 @@ def delete_user_by_rfid(rfid_uid):
 
 def get_users():
     conn, cursor = get_db_connection()
-    cursor.execute("SELECT id, rfid_uid, role FROM users")
+    cursor.execute("SELECT id, rfid_uid, user_uid FROM users")
     users = cursor.fetchall()
     conn.close()
 
     user_list = []
     for user in users:
-        # Falls role Bytes enthält, vorher als UTF-8 decodieren (oder Base64)
-        role_data = user[2]
-        if isinstance(role_data, bytes):
-            role_data = role_data.decode("utf-8", errors="replace")
+        # Falls user_uid Bytes enthält, vorher als UTF-8 decodieren (oder Base64)
+        user_uid_data = user[2]
+        if isinstance(user_uid_data, bytes):
+            user_uid_data = user_uid_data.decode("utf-8", errors="replace")
 
         user_dict = {
-            'id': role_data,     # "role" landet hier als "id"
+            'id': user_uid_data,     # "user_uid" landet hier als "id"
             'rfid_uid': user[1]
         }
         user_list.append(user_dict)
@@ -118,7 +118,7 @@ def get_users():
 
 def get_user_by_rfid(rfid_uid, fernet_key):
     conn, cursor = get_db_connection()
-    cursor.execute("SELECT id, username, role, image FROM users WHERE rfid_uid = ?", (rfid_uid,))
+    cursor.execute("SELECT id, username, user_uid, image FROM users WHERE rfid_uid = ?", (rfid_uid,))
     user = cursor.fetchone()
 
 
@@ -126,14 +126,14 @@ def get_user_by_rfid(rfid_uid, fernet_key):
         conn.close()
         return None
 
-    user_id, enc_username, enc_role, enc_image = user
+    user_id, enc_username, enc_user_uid, enc_image = user
 
     fernet = Fernet(fernet_key)
     username = fernet.decrypt(enc_username)
-    role = enc_role
+    user_uid = enc_user_uid
     image_dec = fernet.decrypt(enc_image)
 
-    user = (user_id, username, role, image_dec)
+    user = (user_id, username, user_uid, image_dec)
     print(user)
     conn.close()
     return user

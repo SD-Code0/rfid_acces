@@ -255,7 +255,7 @@ def add_user_route():
         data = request.get_json()
         username = data.get('username')
         rfid = data.get('rfid')
-        role = data.get('role')
+        user_uid = data.get('user_uid')
         file = data.get('file')
 
         if file:
@@ -264,7 +264,7 @@ def add_user_route():
         else:
             file_path = None
 
-        status, enc_key = add_user(username, rfid, role, file_path)
+        status, enc_key = add_user(username, rfid, user_uid, file_path)
         
         if status == 'success':
             try:
@@ -283,7 +283,7 @@ def add_user_route():
             except Exception as e:
                 print(f"Fehler beim Senden des enc_key an den TCP-Server: {e}")
             
-            return jsonify({"status": "success", "username": username, "rfid": rfid, "role": role, "encrypted_fernet_key": enc_key})
+            return jsonify({"status": "success", "username": username, "rfid": rfid, "user_uid": user_uid, "encrypted_fernet_key": enc_key})
         else:
             return jsonify({"status": "error", "message": "Fehler beim Hinzufügen des Benutzers."})
     else:

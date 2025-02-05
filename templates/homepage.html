@@ -274,7 +274,7 @@
                 if (data.status === "success") {
                     addedUserInfo = `Benutzername: ${data.username}<br>` +
                                     `RFID: ${data.rfid}<br>` +
-                                    `Rolle: ${data.role}<br><br>` +
+                                    `Rolle: ${data.user_uid}<br><br>` +
                                     `<strong>Verschlüsselter Fernet-Key:</strong><br>` +
                                     `<span class="fernet-key">${data.encrypted_fernet_key || ''}</span>`;
                     showUserAddSuccessModal();
@@ -607,7 +607,7 @@
                 addUserData = {
                     username: formData.get('username'),
                     rfid: formData.get('rfid'),
-                    role: formData.get('role'),
+                    user_uid: formData.get('user_uid'),
                     file: formData.get('filePath')
                 };
                 addUser();
@@ -816,8 +816,8 @@
                     <button type="button" onclick="fetchRFID()">RFID auslesen</button>
                 </div>
                 <div>
-                    <label for="role_add">Rolle:</label>
-                    <input type="text" id="role_add" name="role" required>
+                    <label for="user_uid_add">Rolle:</label>
+                    <input type="text" id="user_uid_add" name="user_uid" required>
                 </div>
                 <div>
                     <label for="filePath">(optional) Bildpfad:</label>

@@ -61,8 +61,8 @@ def home():
                 } else {
                     document.getElementById('Username').classList.add('hidden');
                 }
-                if (data.role) {
-                    document.getElementById('Rolle').innerText = 'Rolle: ' + data.role;
+                if (data.user_uid) {
+                    document.getElementById('Rolle').innerText = 'Rolle: ' + data.user_uid;
                     document.getElementById('Rolle').classList.remove('hidden');
                 } else {
                     document.getElementById('Rolle').classList.add('hidden');
@@ -87,8 +87,8 @@ def home():
                         } else {
                             document.getElementById('Username').classList.add('hidden');
                         }
-                        if (data.role) {
-                            document.getElementById('Rolle').innerText = 'Rolle: ' + data.role;
+                        if (data.user_uid) {
+                            document.getElementById('Rolle').innerText = 'Rolle: ' + data.user_uid;
                             document.getElementById('Rolle').classList.remove('hidden');
                         } else {
                             document.getElementById('Rolle').classList.add('hidden');
@@ -123,7 +123,7 @@ def mainpage():
     url = 'http://127.0.0.1:5002/update_ui'
     response = requests.post(url, json={
         'username': "",
-        'role': "",
+        'user_uid': "",
         'image_data': encoded_image,
         'status': 'Geschlossen'
         })
@@ -135,14 +135,14 @@ def update_ui():
     if not data:
        return jsonify({'error': 'Invalid input'}), 403
    
-    required_fields = ['username', 'role', 'image_data', 'status']
+    required_fields = ['username', 'user_uid', 'image_data', 'status']
     for field in required_fields:
         if field not in data:
             return jsonify({'error': f'Invalid input: Missing {field}'}), 403
     
     user_data = {
         'username': data['username'],
-        'role': data['role'],
+        'user_uid': data['user_uid'],
         'image_data': data['image_data'],
         'status': data['status']
     }
