@@ -200,6 +200,13 @@ void writeFernetKeyToCard(String fKey) {
   }
 
   Serial.println("Fernet-Key erfolgreich auf die Karte geschrieben.");
+    if (client.connect(host, server_port)) {
+    // Meldung an den Server
+    client.println("ERFOLG");
+    client.stop();
+  } else {
+    Serial.println("Konnte keine Verbindung zum Server aufbauen, um Erfolgsmeldung zu senden.");
+  }
 }
 
 String getUID() {

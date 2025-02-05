@@ -121,14 +121,19 @@ def get_user_by_rfid(rfid_uid, fernet_key):
     conn, cursor = get_db_connection()
     cursor.execute("SELECT id, username, role, image FROM users WHERE rfid_uid = ?", (rfid_uid,))
     user = cursor.fetchone()
-    user_id = user[0]
-    username = user[1]
-    role = user[2]
-    image = user[3]
+
+
+    if user is None:
+        conn.close()
+        return None
+
+    user_id, enc_username, enc_role, enc_image = user
+
     fernet = Fernet(fernet_key)
-    username = fernet.decrypt(username)
-    role = fernet.decrypt(role)
-    image_dec = fernet.decrypt(image)
+    username = fernet.decrypt(enc_username)
+    role = fernet.decrypt(enc_role)
+    image_dec = fernet.decrypt(enc_image)
+
     user = (user_id, username, role, image_dec)
     print(user)
     conn.close()
