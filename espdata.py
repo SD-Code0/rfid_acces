@@ -21,17 +21,10 @@ def verify_challange(challange_raw, challange_encrypted):
         return False
     
 
-def fix_padding(encoded_data):
-    missing_padding = len(encoded_data) % 4
-    if missing_padding:
-        encoded_data += '=' * (4 - missing_padding)
-    return encoded_data
-
 
 
 def decrypt_data(fernet_key_encoded):
     if fernet_key_encoded:
-        fernet_key_encoded = fix_padding(fernet_key_encoded)
         key_fernet_path = os.path.join(os.path.dirname(__file__), "fernet_key.pem")
         fernet_key = open(key_fernet_path, "rb").read().strip()
         fernet = Fernet(fernet_key)
@@ -90,6 +83,7 @@ def start_tcp_server_port2():
         elif data == "GET_FERNET":
             # Fernet-Key zurücksenden, falls vorhanden
             if stored_enc_key is not None:
+                print(f"Send stored_enc_key: {stored_enc_key}") #debug
                 response = "ENC:" + stored_enc_key
                 client_socket.sendall(response.encode('utf-8'))
             else:

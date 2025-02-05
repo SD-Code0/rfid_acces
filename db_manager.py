@@ -73,7 +73,8 @@ def add_user(username, rfid_uid, role, image_path=None):
         global_fernet = Fernet(open("fernet_key.pem", "rb").read())  
         
         encrypted_fernetkey = global_fernet.encrypt(fernet_key)
-
+        print("Fernetkey-add-user: ") #debug
+        print(encrypted_fernetkey)
         encrypted_username = fernet.encrypt(username.encode())
         #encrypted_role = fernet.encrypt(role.encode())
         cursor.execute("INSERT INTO users (username, rfid_uid, role, image) VALUES (?, ?, ?, ?)",
