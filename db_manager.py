@@ -32,7 +32,7 @@ def create_tables():
             user_id INTEGER NOT NULL,
             position TEXT NOT NULL,
             access_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(id) 
+            FOREIGN KEY (user_id) REFERENCES users(role) 
         )
     ''')
     
