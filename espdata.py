@@ -83,25 +83,24 @@ def start_tcp_server_port2():
         elif data == "GET_FERNET":
             # Fernet-Key zurücksenden, falls vorhanden
             if stored_enc_key is not None:
-                print(f"Send stored_enc_key: {stored_enc_key}") #debug
                 response = "ENC:" + stored_enc_key
                 client_socket.sendall(response.encode('utf-8'))
             else:
                 client_socket.sendall(b"NO_KEY")
         elif data == "ERFOLG":
             stored_enc_key = None
-            print("Erfolg erhalten")
+#debug            print("Erfolg erhalten")
 
         elif data.startswith("ENC:"):
             # Fernet-Key speichern
             stored_enc_key = data[4:]
-            print(f"Fernet-Key erhalten und gespeichert: {stored_enc_key}")
+#debug            print(f"Fernet-Key erhalten und gespeichert: {stored_enc_key}")
             client_socket.sendall(b"Fernet-Key erhalten")
 
         elif data.startswith("RFID:"):
             # RFID aktualisieren
             stored_rfid = data[5:]
-            print(f"RFID aktualisiert: {stored_rfid}")
+#debug            print(f"RFID aktualisiert: {stored_rfid}")
             client_socket.sendall(b"RFID gesetzt")
 
         else:
