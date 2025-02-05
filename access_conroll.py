@@ -66,7 +66,7 @@ def access_door(rfid_uid,fernet_key,position):
             url = 'http://127.0.0.1:5002/update_ui'
             response = requests.post(url, json={
                 'username': user[1].decode("utf-8"),
-                'role': user[2].decode("utf-8"),
+                'role': user[2],
                 'image_data': user[3].decode("utf-8"),
                 'status': 'Success'
             })
