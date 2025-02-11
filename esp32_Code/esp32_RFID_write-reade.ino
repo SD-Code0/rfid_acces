@@ -9,12 +9,12 @@ const char* ssid = "H304";
 const char* password = "VTEa26-2426";
 
 // Serverdaten anpassen
-const char* host = "192.168.188.43";
+const char* host = "192.168.188.254";
 const int server_port = 12346;
 
 // RC522 Pins anpassen!
-#define RST_PIN 14
-#define SS_PIN  21
+#define SS_PIN 5
+#define RST_PIN 33
 
 MFRC522 mfrc522(SS_PIN, RST_PIN);
 WiFiClient client;
@@ -38,7 +38,7 @@ void setup() {
   Serial.print("IP-Adresse: ");
   Serial.println(WiFi.localIP());
 
-  SPI.begin(13,12,11); // SCK, MISO, MOSI pins
+  SPI.begin(18,19,23); // SCK, MISO, MOSI pins
   mfrc522.PCD_Init();
   Serial.println("RC522 RFID Reader initialisiert.");
 }

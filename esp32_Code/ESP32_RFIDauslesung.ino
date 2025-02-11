@@ -2,8 +2,8 @@
 #include <MFRC522.h>
 #include <WiFi.h>
 
-#define SS_PIN 21 //bei bedarf anpassen
-#define RST_PIN 14 //bei bedarf anpassen
+#define SS_PIN 5 //bei bedarf anpassen
+#define RST_PIN 33 //bei bedarf anpassen
 
 MFRC522 mfrc522(SS_PIN, RST_PIN);  
 
@@ -23,7 +23,7 @@ String fullData = ""; // nicht verändern
 void setup() {
   Serial.begin(115200);
 
-  SPI.begin(13, 12, 11);  // SCK, MISO, MOSI, SS
+  SPI.begin(18,19,23);  // SCK, MISO, MOSI, SS
   mfrc522.PCD_Init();
   Serial.println("Lesen von höheren Blöcken...");
 
