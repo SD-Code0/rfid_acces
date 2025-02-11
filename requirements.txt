@@ -2,6 +2,4 @@ Flask
 flask_socketio
 flask_cors
 cryptography
-werkzeug
 requests
-sqlite3

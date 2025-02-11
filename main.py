@@ -225,7 +225,6 @@ def update_config_route():
         
         
         change_config(ssid, password, host, pos)
-        print(f"SSID: {ssid}, Password: {password}, Host: {host}, POS: {pos}")
         return jsonify({"status": "success", "message": "Konfiguration aktualisiert"})
     else:
         return jsonify({"status": "error", "message": "Nicht angemeldet"})
@@ -332,7 +331,6 @@ def get_logs():
     if 'logged_in' in session:
         log_date = request.form['log_date']
         logs = get_access_logs(log_date)
-        print(logs)
         return jsonify(logs)
     else:
         return redirect(url_for('login'))

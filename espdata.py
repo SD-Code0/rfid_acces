@@ -48,10 +48,8 @@ def start_tcp_server():
         if data_list and len(data_list) >= 3:
             rfid_uid = data_list[0]
             fernet_key_encoded = data_list[1]
-            print(fernet_key_encoded)
             position = data_list[2]
             fernet_key = decrypt_data(fernet_key_encoded)
-            print(f"rfid_uid: {rfid_uid}, fernet_key: {fernet_key_encoded}, position: {position}")
             access_door(rfid_uid, fernet_key, position)
         else:
             denie_access()

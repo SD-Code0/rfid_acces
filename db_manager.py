@@ -134,7 +134,6 @@ def get_user_by_rfid(rfid_uid, fernet_key):
     image_dec = fernet.decrypt(enc_image)
 
     user = (user_id, username, user_uid, image_dec)
-    print(user)
     conn.close()
     return user
 
