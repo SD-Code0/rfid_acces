@@ -157,6 +157,7 @@ def get_access_logs(date):
             'position': log[4]
         }
         log_list.append(log_dict)
+        print(log_dict)
     
     return log_list
  
@@ -235,6 +236,7 @@ def delete_logs_from_db(date):
 
 def log_access(user_roll, position):
     conn, cursor = get_db_connection()
+    print(f"DEBUG: Füge Log ein – user_id: {user_roll}, podition: {position}")
     cursor.execute("INSERT INTO access_logs (user_id,position) VALUES (?,?)", (user_roll,position))
     conn.commit()
     conn.close()
