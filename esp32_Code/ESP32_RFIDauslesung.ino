@@ -2,8 +2,16 @@
 #include <MFRC522.h>
 #include <WiFi.h>
 
+
+
 #define SS_PIN 5 //bei bedarf anpassen
 #define RST_PIN 33 //bei bedarf anpassen
+//testing
+#include "esp_task_wdt.h"
+#ifndef ESP_TASK_WDT_IDLE_CORE_MASK_ALL
+#define ESP_TASK_WDT_IDLE_CORE_MASK_ALL ((1 << 0) | (1 << 1))
+#endif
+//testing end
 
 MFRC522 mfrc522(SS_PIN, RST_PIN);  
 
@@ -11,7 +19,7 @@ MFRC522 mfrc522(SS_PIN, RST_PIN);
 
 const char* ssid = "H304";
 const char* password = "VTEa26-2426";
-const char* host = "192.168.188.43";
+const char* host = "192.168.188.254";
 const uint16_t port = 12345; // unverendert lassen
 const char* pos = "eingang";
 
@@ -19,8 +27,18 @@ const char* pos = "eingang";
 
 String RFID = ""; // nicht verändern
 String fullData = ""; // nicht verändern
-
+//testing
+esp_task_wdt_config_t wdt_config = {
+    .timeout_ms = 5000,  // Timeout in Millisekunden (5 Sekunden)
+    .idle_core_mask = ESP_TASK_WDT_IDLE_CORE_MASK_ALL, // Alle Kerne überwachen
+    .trigger_panic = true
+  };  // System-Neustart bei Timeout
+//testing end
 void setup() {
+
+  esp_task_wdt_init(&wdt_config);  // 5 Sekunden Watchdog aktivieren
+  esp_task_wdt_add(NULL); // Watchdog für den Hauptprozess aktivieren
+
   Serial.begin(115200);
 
   SPI.begin(18,19,23);  // SCK, MISO, MOSI, SS
@@ -35,9 +53,15 @@ void setup() {
   Serial.println("WiFi verbunden.");
 }
 
+
+
+
 void loop() {
   if (!mfrc522.PICC_IsNewCardPresent()) return;
   if (!mfrc522.PICC_ReadCardSerial()) return;
+//Testing
+  esp_task_wdt_reset(); // Muss regelmäßig aufgerufen werden, sonst Neustart
+//testing end
 
   RFID = "";
   for (byte i = 0; i < mfrc522.uid.size; i++) {

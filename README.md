@@ -1,3 +1,11 @@
+```sh
+1. Projektbeschreibung
+2. Installation
+1. Repository klonen
+2. Abhängigkeiten installieren
+3. Arduino-Sketch hochladen
+```
+
 ## 1. Projektbeschreibung
 
 Dieses Projekt ist ein RFID-Zugangskontrollsystem, das verschiedene Technologien wie Python, SQLite, Flask und Arduino verwendet. Es ermöglicht die Verwaltung von Benutzern und deren Zugriffsrechten sowie die Protokollierung von Zugriffsereignissen.
@@ -8,10 +16,14 @@ Dieses Projekt ist ein RFID-Zugangskontrollsystem, das verschiedene Technologien
    ```sh
    git clone https://github.com/SD-Code0/rfid_acces.git
    cd rfid_acces
+   ```
 
 2. **Abhängigkeiten installieren:**:
-   ```sh
+    ```sh
+    python3 -m venv rfid_venv
+    source rfid_venv/bin/activate
     pip install -r requirements.txt
+    ```
 
 3. **Arduino-Sketch hochladen**:
 
@@ -23,45 +35,41 @@ Dieses Projekt ist ein RFID-Zugangskontrollsystem, das verschiedene Technologien
         ```c++
         const char* ssid = "deine-ssid";
         const char* password = "dein-passwort";
+        const char* host = "die ip des servers hier angeben"
         ```
-
-        - **Server-Einstellungen**:
-        - Stelle sicher, dass der Flask-Server auf dem richtigen Host und Port läuft, wie in der Arduino-Sketch-Datei angegeben.
         
     Lade den Sketch auf dein ESP32 hoch.
 
-4. **Verwendung**:
+## 3. Verwendung
 
     Starte das Hauptskript:
     ```sh
-    python main.py
+    source rfid_venv/bin/activate
+    python3 main.py
     ```
 
     Beachte das die ip-adressen im code mit der des Servers übereinstimmen
-  
+    die Web-ui kann man unter ip des servers + port 5001 
+    Beispielsweise:
+    ```sh
+    192.168.188.2:5001
+    ```
+    bei erstmaligen aufraufen der web ui wird man dazu aufgerufen ein Admin Konto anzulegen die für zukünftige zugriffe der web-ui erforderlich ist
 
-    Wähle die Option 1, um einen neuen Benutzer hinzuzufügen, und folge den Anweisungen.
-    Benutzer löschen:
+5. **Geräte hinzufügen**
+    öffne die web-ui und navigiere zu den Tab Geräte --> Gerät hinzufügen dort alle daten eingeben
 
-    Wähle die Option 2, um einen Benutzer zu löschen, und gib die RFID-UID des Benutzers ein.
-    Alle Benutzer anzeigen:
+6. **Benutzer hinzufügen**
+    öffne die Web-ui und navigiere zu den Tab Benutzerverwaltung --> Benutzerhinzufügen dort alle erforderlichen daten eingeben die RFID kann mittels der Schreibstation auch ausgelesen werden 
+7. **Benutzer löschen**
+    öffne die Web-ui und navigiere zu den Tab Benutzerverwaltung --> Benutzer löschen dort entweder die RFID manuell eintragen oder die karte auf die Schreibstation legen und RFID auslesen klicken
 
-    Wähle die Option 3, um alle Benutzer anzuzeigen.
-    Tür öffnen:
 
-    Wähle die Option 4, um die Tür zu öffnen, und gib die RFID-UID ein.
-    Zugriffsprotokolle anzeigen:
-
-    Wähle die Option 5, um die Zugriffsprotokolle anzuzeigen.
-    Alle Zugriffsprotokolle löschen:
-
-    Wähle die Option 6, um alle Zugriffsprotokolle zu löschen.
-
-5. **Lizenz**:
+## 4. Lizenz
 
     Dieses Projekt steht unter der MIT-Lizenz. Siehe die LICENSE-Datei für weitere Details. 
 
-6. **Third-Party Libraries**:
+## 5. Third-Party Libraries
     This project uses the following third-party libraries:
 
     **SQLite**
