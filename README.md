@@ -41,7 +41,7 @@ Dieses Projekt ist ein RFID-Zugangskontrollsystem, das verschiedene Technologien
     Lade den Sketch auf dein ESP32 hoch.
 
 ## 3. Verwendung
-
+1. **starten**
     Starte das Hauptskript:
     ```sh
     source rfid_venv/bin/activate
@@ -56,12 +56,12 @@ Dieses Projekt ist ein RFID-Zugangskontrollsystem, das verschiedene Technologien
     ```
     bei erstmaligen aufraufen der web ui wird man dazu aufgerufen ein Admin Konto anzulegen die für zukünftige zugriffe der web-ui erforderlich ist
 
-5. **Geräte hinzufügen**
+2. **Geräte hinzufügen**
     öffne die web-ui und navigiere zu den Tab Geräte --> Gerät hinzufügen dort alle daten eingeben
 
-6. **Benutzer hinzufügen**
+3. **Benutzer hinzufügen**
     öffne die Web-ui und navigiere zu den Tab Benutzerverwaltung --> Benutzerhinzufügen dort alle erforderlichen daten eingeben die RFID kann mittels der Schreibstation auch ausgelesen werden 
-7. **Benutzer löschen**
+4. **Benutzer löschen**
     öffne die Web-ui und navigiere zu den Tab Benutzerverwaltung --> Benutzer löschen dort entweder die RFID manuell eintragen oder die karte auf die Schreibstation legen und RFID auslesen klicken
 
 
