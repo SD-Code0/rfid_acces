@@ -1,87 +1,73 @@
-```sh
-1. Projektbeschreibung
-2. Installation
-1. Repository klonen
-2. Abhängigkeiten installieren
-3. Arduino-Sketch hochladen
-```
+# RFID Access
 
-## 1. Projektbeschreibung
-
-Dieses Projekt ist ein RFID-Zugangskontrollsystem, das verschiedene Technologien wie Python, SQLite, Flask und Arduino verwendet. Es ermöglicht die Verwaltung von Benutzern und deren Zugriffsrechten sowie die Protokollierung von Zugriffsereignissen.
+## 1. Project Description
+This project is an RFID access control system that uses technologies such as Python, SQLite, Flask, and Arduino. It enables user management, access rights management, and logs access events.
 
 ## 2. Installation
 
-1. **Repository klonen**:
-   ```sh
-   git clone https://github.com/SD-Code0/rfid_acces.git
-   cd rfid_acces
-   ```
+### 2.1 Clone the Repository
+```sh
+git clone https://github.com/SD-Code0/rfid_acces.git
+cd rfid_acces
+```
 
-2. **Abhängigkeiten installieren:**:
-    ```sh
-    python3 -m venv rfid_venv
-    source rfid_venv/bin/activate
-    pip install -r requirements.txt
-    ```
+### 2.2 Install Dependencies
+```sh
+python3 -m venv rfid_venv
+source rfid_venv/bin/activate
+pip install -r requirements.txt
+```
 
-3. **Arduino-Sketch hochladen**:
+### 2.3 Upload the Arduino Sketch
+Open the file `RFIDauslesung.ino` in the Arduino IDE.
 
-    Öffne die Datei RFIDauslesung.ino in der Arduino IDE.
-    ## Konfiguration
+#### Configuration
+- **WiFi Settings**:  
+  Edit the file `ESP32_RFIDauslesung.ino` and add your WiFi SSID and password:
+  ```c++
+  const char* ssid = "your-ssid";
+  const char* password = "your-password";
+  const char* host = "your-server-ip";
+  ```
+  
+Upload the sketch to your ESP32.
 
-    - **WiFi-Einstellungen**:
-    - Bearbeite die Datei [ESP32_RFIDauslesung.ino] und füge deine WiFi-SSID und dein Passwort hinzu:
-        ```c++
-        const char* ssid = "deine-ssid";
-        const char* password = "dein-passwort";
-        const char* host = "die ip des servers hier angeben"
-        ```
-        
-    Lade den Sketch auf dein ESP32 hoch.
+## 3. Usage
 
-## 3. Verwendung
-1. **starten**
-    Starte das Hauptskript:
-    ```sh
-    source rfid_venv/bin/activate
-    python3 main.py
-    ```
+### 3.1 Start the Application
+```sh
+source rfid_venv/bin/activate
+python3 main.py
+```
+The Web UI is available at your server’s IP address on port `5001`, for example:
+```sh
+192.168.188.2:5001
+```
+When you first load the Web UI, you will be prompted to create an admin account required for future access.
 
-    Beachte das die ip-adressen im code mit der des Servers übereinstimmen
-    die Web-ui kann man unter ip des servers + port 5001 
-    Beispielsweise:
-    ```sh
-    192.168.188.2:5001
-    ```
-    bei erstmaligen aufraufen der web ui wird man dazu aufgerufen ein Admin Konto anzulegen die für zukünftige zugriffe der web-ui erforderlich ist
+### 3.2 Add Devices
+Open the Web UI and go to **Devices** → **Add Device**. Enter all required information.
 
-2. **Geräte hinzufügen**
-    öffne die web-ui und navigiere zu den Tab Geräte --> Gerät hinzufügen dort alle daten eingeben
+### 3.3 Add Users
+Open the Web UI and go to **User Management** → **Add User**. Enter all required data. The RFID can be read with the write station.
 
-3. **Benutzer hinzufügen**
-    öffne die Web-ui und navigiere zu den Tab Benutzerverwaltung --> Benutzerhinzufügen dort alle erforderlichen daten eingeben die RFID kann mittels der Schreibstation auch ausgelesen werden 
-4. **Benutzer löschen**
-    öffne die Web-ui und navigiere zu den Tab Benutzerverwaltung --> Benutzer löschen dort entweder die RFID manuell eintragen oder die karte auf die Schreibstation legen und RFID auslesen klicken
+### 3.4 Delete Users
+Open the Web UI and go to **User Management** → **Delete User**. Either enter the RFID tag manually or place it on the write station and click **Read RFID**.
 
-
-## 4. Lizenz
-
-    Dieses Projekt steht unter der MIT-Lizenz. Siehe die LICENSE-Datei für weitere Details. 
+## 4. License
+This project is licensed under the MIT License. See the LICENSE file for details.
 
 ## 5. Third-Party Libraries
-    This project uses the following third-party libraries:
+- **SQLite**  
+  License: Public Domain  
+  Link: [SQLite License](https://www.sqlite.org/copyright.html)
 
-    **SQLite**
-         - License: Public Domain
-         - Link: [SQLite License](https://www.sqlite.org/copyright.html)
+- **Flask**  
+  License: BSD-3-Clause  
+  Link: [Flask License](https://github.com/pallets/flask/blob/main/LICENSE.rst)
 
-    **Flask**
-        - License: BSD-3-Clause
-        - Link: [Flask License](https://github.com/pallets/flask/blob/main/LICENSE.rst)
+- **cryptography**  
+  License: Apache License 2.0  
+  Link: [cryptography License](https://github.com/pyca/cryptography/blob/main/LICENSE)
 
-    **cryptography**
-        - License: Apache License 2.0
-        - Link: [cryptography License](https://github.com/pyca/cryptography/blob/main/LICENSE)
-    
 
