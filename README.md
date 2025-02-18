@@ -1,7 +1,7 @@
 # RFID Access
 
 ## 1. Project Description
-This project is an RFID access control system that uses technologies such as Python, SQLite, Flask, and Arduino. It enables user management, access rights management, and logs access events.
+This project is an RFID access control system that uses technologies such as Python, SQLite, Flask. It enables user management, access rights management, and logs access events.
 
 ## 2. Installation
 
@@ -18,7 +18,7 @@ source rfid_venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 2.3 Upload the Arduino Sketch
+### 2.3 Upload the ESP32 Sketch
 Open the file `RFIDauslesung.ino` in the Arduino IDE.
 
 #### Configuration
